@@ -1,0 +1,29 @@
+{
+  "tipo": "plano_projeto",
+  "versao_formato": "1.0",
+  "projeto": {
+    "id": "site-csl-consultoria",
+    "titulo": "Criação do site da CSL Consultoria",
+    "descricao": "Site institucional com páginas de serviços e contato",
+    "responsavel": "Ricardo Romão",
+    "prioridade": "alta",
+    "data_inicio": "2026-10-13",
+    "prazo_final": "2026-11-30"
+  },
+  "etapas": [
+    {
+      "id": "E01",
+      "titulo": "Definir estrutura e páginas do site",
+      "descricao": "Listar páginas, textos e referências visuais",
+      "responsavel": "Ricardo Romão",
+      "horas_estimadas": 3,
+      "data_inicio": "2026-10-13",
+      "prazo": "2026-10-15",
+      "depende_de": [],
+      "status": "pendente",
+      "links": [],
+      "observacoes": ""
+    }
+  ],
+  "atualizado_em": "2026-10-12T15:30:00-03:00"
+}

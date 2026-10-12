@@ -1,0 +1,1522 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CSL Gestão</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: barra lateral fixa (desktop) / barra de abas inferior (celular); conteúdo em painéis.
+   Cada sócio tem a sua cor: Legat = cobre, Ricardo = azul-petróleo. Dourado CSL só como destaque. */
+:root{
+  --bg:#0E1117; --surface:#151922; --surface-2:#1C212C; --line:#272E3B;
+  --fg:#E6E8EE; --muted:#8E96A7; --faint:#5F6779;
+  --accent:#CDB27A; --accent-ink:#1A1508;
+  --legat:#E8875B; --legat-soft:rgba(232,135,91,.16);
+  --ricardo:#5DB7C7; --ricardo-soft:rgba(93,183,199,.16);
+  --danger:#EB6A6F; --danger-soft:rgba(235,106,111,.14);
+  --warn:#E5B44C; --warn-soft:rgba(229,180,76,.14);
+  --ok:#5FC08E; --ok-soft:rgba(95,192,142,.14);
+  --shadow:0 18px 50px rgba(0,0,0,.45);
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --r:10px;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#F3F4F7; --surface:#FFFFFF; --surface-2:#F0F1F5; --line:#E0E3EA;
+    --fg:#161A22; --muted:#5C6476; --faint:#9299A8;
+    --accent:#8A6D2F; --accent-ink:#FFFFFF;
+    --legat:#C4612F; --legat-soft:rgba(196,97,47,.12);
+    --ricardo:#16808F; --ricardo-soft:rgba(22,128,143,.12);
+    --danger:#C8363E; --danger-soft:rgba(200,54,62,.10);
+    --warn:#A87410; --warn-soft:rgba(168,116,16,.12);
+    --ok:#23845A; --ok-soft:rgba(35,132,90,.11);
+    --shadow:0 18px 50px rgba(20,24,34,.16);
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#F3F4F7; --surface:#FFFFFF; --surface-2:#F0F1F5; --line:#E0E3EA;
+  --fg:#161A22; --muted:#5C6476; --faint:#9299A8;
+  --accent:#8A6D2F; --accent-ink:#FFFFFF;
+  --legat:#C4612F; --legat-soft:rgba(196,97,47,.12);
+  --ricardo:#16808F; --ricardo-soft:rgba(22,128,143,.12);
+  --danger:#C8363E; --danger-soft:rgba(200,54,62,.10);
+  --warn:#A87410; --warn-soft:rgba(168,116,16,.12);
+  --ok:#23845A; --ok-soft:rgba(35,132,90,.11);
+  --shadow:0 18px 50px rgba(20,24,34,.16);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font:14px/1.5 var(--f-body);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.faint{color:var(--faint)} .muted{color:var(--muted)}
+.p-legat{--pc:var(--legat);--pc-soft:var(--legat-soft)}
+.p-ricardo{--pc:var(--ricardo);--pc-soft:var(--ricardo-soft)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+/* ---------- estrutura ---------- */
+.app{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:100vh}
+.lateral{position:sticky;top:0;height:100vh;border-right:1px solid var(--line);padding:22px 14px;display:flex;flex-direction:column;gap:26px;background:var(--bg)}
+.marca{display:flex;align-items:center;gap:10px;padding:0 8px}
+.marca-sinal{width:34px;height:34px;border-radius:9px;border:1px solid var(--accent);display:grid;place-items:center;font:700 13px/1 var(--f-display);color:var(--accent);letter-spacing:.04em}
+.marca b{font:700 16px/1.1 var(--f-display);display:block}
+.marca small{color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:11px;padding:9px 10px;border:0;background:none;border-radius:8px;cursor:pointer;color:var(--muted);text-align:left;font-weight:500}
+.nav button svg{width:18px;height:18px;flex:none}
+.nav button:hover{color:var(--fg);background:var(--surface)}
+.nav button.ativo{color:var(--fg);background:var(--surface-2)}
+.nav button.ativo svg{color:var(--accent)}
+.lateral-pe{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding:0 4px}
+.principal{min-width:0;padding-inline:clamp(16px,3vw,36px);padding-block:20px 60px}
+.topo{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+.topo h1{font:700 clamp(22px,2.6vw,30px)/1.15 var(--f-display);margin:0;letter-spacing:-.01em;text-wrap:balance}
+.topo .sub{color:var(--muted);font-size:13px}
+.topo-esq{flex:1;min-width:200px}
+.topo-dir{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* ---------- controles ---------- */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:500;white-space:nowrap;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--muted)}
+.btn.prim{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.prim:hover{filter:brightness(1.07)}
+.btn:disabled{opacity:.4;cursor:not-allowed;filter:none}
+.btn.perigo{color:var(--danger);border-color:var(--danger-soft)}
+.btn.peq{padding:5px 10px;font-size:13px}
+.btn svg{width:16px;height:16px}
+.icone-btn{position:relative;width:38px;height:38px;display:grid;place-items:center;border-radius:9px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
+.icone-btn svg{width:18px;height:18px}
+.contador{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--danger);color:#fff;font:600 11px/18px var(--f-body);text-align:center}
+.usuario{display:flex;align-items:center;gap:9px;padding:4px 12px 4px 4px;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
+.av{width:28px;height:28px;border-radius:50%;display:inline-grid;place-items:center;background:var(--pc-soft);color:var(--pc);font:700 12px/1 var(--f-display);border:1px solid var(--pc);flex:none}
+.av.p{width:22px;height:22px;font-size:10px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;padding:2px;background:var(--surface)}
+.seg button{border:0;background:none;padding:5px 11px;border-radius:6px;cursor:pointer;color:var(--muted);font-weight:500;font-size:13px}
+.seg button.ativo{background:var(--surface-2);color:var(--fg)}
+.seg button.ativo.p-legat,.seg button.ativo.p-ricardo{color:var(--pc);background:var(--pc-soft)}
+input[type=text],input[type=url],input[type=date],input[type=number],input[type=search],select,textarea{width:100%;padding:9px 11px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2)}
+textarea{resize:vertical;min-height:80px}
+label.campo{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.02em;min-width:0}
+.linha-campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.ferramentas{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.ferramentas .busca{flex:1;min-width:180px;max-width:340px}
+
+/* ---------- painéis ---------- */
+.grade{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.painel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;min-width:0}
+.painel h2{font:600 15px/1.3 var(--f-display);margin:0 0 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.painel h2 .acao{margin-left:auto}
+.rotulo{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.vazio{color:var(--muted);padding:14px 0;font-size:13px}
+.aviso-exemplo{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:10px 14px;border:1px dashed var(--accent);border-radius:var(--r);margin-bottom:18px;font-size:13px;color:var(--muted)}
+.aviso-exemplo b{color:var(--accent)}
+
+/* números */
+.numeros{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.numero{padding:12px 14px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line)}
+.numero b{display:block;font:700 26px/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.numero span{font-size:12px;color:var(--muted)}
+.numero.danger b{color:var(--danger)} .numero.warn b{color:var(--warn)} .numero.ok b{color:var(--ok)}
+
+/* itens */
+.lista{display:flex;flex-direction:column}
+.item{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:9px 4px 9px 10px;border-top:1px solid var(--line);position:relative}
+.item:first-child{border-top:0}
+.item::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:2px;background:var(--pc)}
+.item-corpo{border:0;background:none;text-align:left;cursor:pointer;padding:0;min-width:0;display:flex;flex-direction:column;gap:3px}
+.item-titulo{font-weight:500;overflow-wrap:anywhere}
+.item-corpo:hover .item-titulo{text-decoration:underline;text-decoration-color:var(--faint);text-underline-offset:3px}
+.item.feito .item-titulo{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--faint)}
+.item-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px}
+.tag{font-size:11px;padding:1px 7px;border-radius:999px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.tag.andamento{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,transparent)}
+.tag.danger{color:var(--danger);background:var(--danger-soft);border-color:transparent}
+.tag.ex{border-style:dashed;color:var(--accent);background:none}
+.prazo{font:500 12px/1 var(--f-mono);padding:5px 8px;border-radius:6px;color:var(--muted);white-space:nowrap}
+.prazo.danger{color:var(--danger);background:var(--danger-soft)}
+.prazo.warn{color:var(--warn);background:var(--warn-soft)}
+.prazo.ok{color:var(--ok)}
+.check{display:grid;place-items:center;cursor:pointer}
+.check input{position:absolute;opacity:0;pointer-events:none}
+.check span{width:19px;height:19px;border-radius:6px;border:1.5px solid var(--pc);display:grid;place-items:center;transition:background .15s}
+.check input:checked+span{background:var(--pc)}
+.check input:checked+span::after{content:"";width:5px;height:9px;border:solid var(--bg);border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.check input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.grupo-titulo{display:flex;align-items:baseline;gap:8px;margin:18px 0 4px}
+.grupo-titulo:first-child{margin-top:0}
+.grupo-titulo .rotulo.danger{color:var(--danger)}
+
+/* dia de cada um */
+.dia-col h2 .av{width:26px;height:26px}
+.cabeca-pessoa{color:var(--pc)}
+
+/* carga */
+.carga{display:flex;flex-direction:column;gap:14px}
+.carga-linha{display:flex;flex-direction:column;gap:6px}
+.carga-topo{display:flex;justify-content:space-between;gap:8px;font-size:13px;flex-wrap:wrap}
+.barra{height:8px;border-radius:5px;background:var(--surface-2);overflow:hidden;position:relative}
+.barra i{position:absolute;inset:0 auto 0 0;border-radius:5px;background:var(--pc,var(--accent));transition:width .5s ease}
+.barra.excesso i{background:var(--danger)}
+.texto-carga{font-size:12px;color:var(--muted)}
+
+/* projetos */
+.projetos{display:flex;flex-direction:column;gap:16px}
+.projeto-cab{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.projeto-cab h3{font:700 18px/1.25 var(--f-display);margin:0 0 4px;text-wrap:balance}
+.projeto-cab p{margin:0;color:var(--muted);font-size:13px;max-width:65ch}
+.projeto-num{margin-left:auto;text-align:right}
+.projeto-num b{font:700 28px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.projeto-meta{display:flex;flex-wrap:wrap;gap:6px 16px;margin:12px 0;font-size:12px;color:var(--muted)}
+.projeto-meta b{color:var(--fg);font-weight:500}
+.tabela-wrap{overflow-x:auto;margin-top:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td select{padding:4px 8px;width:auto;font-size:12px}
+tr:last-child td{border-bottom:0}
+.link-tab{border:0;background:none;padding:0;cursor:pointer;text-align:left;font-weight:500}
+.link-tab:hover{text-decoration:underline}
+.prog-mini{display:flex;align-items:center;gap:10px}
+.prog-mini .barra{flex:1}
+
+/* calendário */
+.cal-cab{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.cal-cab h2{font:700 20px/1.2 var(--f-display);margin:0 6px;min-width:170px}
+.cal-wrap{overflow-x:auto}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(104px,1fr));border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--line);gap:1px;min-width:740px}
+.cal-dow{background:var(--surface);padding:7px 9px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.cal-dia{background:var(--surface);min-height:108px;padding:6px 6px 8px;display:flex;flex-direction:column;gap:3px;cursor:pointer;min-width:0}
+.cal-dia:hover{background:var(--surface-2)}
+.cal-dia.fora{background:var(--bg)}
+.cal-dia.fora .cal-n{color:var(--faint)}
+.cal-dia.fds{background:color-mix(in srgb,var(--surface) 70%,var(--bg))}
+.cal-n{font:500 12px/1 var(--f-mono);color:var(--muted);padding:3px 4px;align-self:flex-start;border-radius:5px}
+.cal-dia.hoje .cal-n{background:var(--accent);color:var(--accent-ink)}
+.cal-ev{display:block;width:100%;text-align:left;border:0;border-left:3px solid var(--pc);background:var(--pc-soft);color:var(--fg);font-size:12px;padding:3px 6px;border-radius:4px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-ev.feito{opacity:.5;text-decoration:line-through}
+.cal-ev.atrasado{box-shadow:inset 0 0 0 1px var(--danger)}
+.cal-mais{font-size:11px;color:var(--muted);padding-left:4px}
+.cal.semana .cal-dia{min-height:360px}
+.cal.semana .cal-ev{white-space:normal}
+.cal-ev small{display:block;color:var(--muted);font-size:11px}
+
+/* resumo */
+.pessoa-resumo{border-top:3px solid var(--pc)}
+.pessoa-resumo h2{color:var(--pc)}
+.kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+.kv div b{display:block;font:700 22px/1.15 var(--f-display);font-variant-numeric:tabular-nums;color:var(--fg)}
+.kv div span{font-size:12px;color:var(--muted)}
+.grafico{width:100%;height:auto;display:block}
+.grafico text{fill:var(--muted);font:11px var(--f-mono)}
+.grafico .eixo{stroke:var(--line)}
+.grafico .b-legat{fill:var(--legat)}
+.grafico .b-ricardo{fill:var(--ricardo)}
+.grafico .val{fill:var(--fg);font-weight:500}
+.legenda{display:flex;gap:16px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.legenda span{display:inline-flex;align-items:center;gap:6px}
+.legenda i{width:10px;height:10px;border-radius:3px;background:var(--pc)}
+.dia-lista{display:flex;flex-direction:column;gap:8px}
+.dia-bloco{display:grid;grid-template-columns:86px minmax(0,1fr);gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.dia-bloco:first-child{border-top:0}
+.dia-bloco .rotulo{padding-top:3px}
+.feito-linha{display:flex;align-items:center;gap:8px;font-size:13px;padding:2px 0;min-width:0}
+.feito-linha span{min-width:0;overflow-wrap:anywhere}
+
+/* histórico */
+.hist{display:flex;flex-direction:column}
+.hist-l{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13px}
+.hist-l:first-child{border-top:0}
+.hist-l time{display:block;color:var(--faint);font:11px var(--f-mono)}
+
+/* modal */
+.fundo{position:fixed;inset:0;background:rgba(5,7,12,.55);backdrop-filter:blur(3px);display:flex;justify-content:center;align-items:flex-start;padding:max(4vh,env(safe-area-inset-top,0px)) 16px 4vh;overflow-y:auto;z-index:50;animation:surgir .18s ease}
+.modal{width:min(720px,100%);background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);animation:subir .22s ease}
+.modal.lado{width:min(780px,100%)}
+.modal-cab{display:flex;align-items:flex-start;gap:12px;padding:18px 20px 12px;border-bottom:1px solid var(--line)}
+.modal-cab h2{font:700 19px/1.25 var(--f-display);margin:0;flex:1;text-wrap:balance;overflow-wrap:anywhere}
+.modal-corpo{padding:16px 20px 20px;display:flex;flex-direction:column;gap:16px}
+.modal-pe{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;padding:12px 20px 18px;border-top:1px solid var(--line)}
+.fechar{border:0;background:none;cursor:pointer;color:var(--muted);font-size:22px;line-height:1;padding:2px 6px}
+.meta-grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.meta-grade>div>span:first-child{display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:2px}
+.descricao{white-space:pre-wrap;color:var(--fg);margin:0;overflow-wrap:anywhere}
+.registros{display:flex;flex-direction:column;gap:10px}
+.registro{border:1px solid var(--line);border-left:3px solid var(--pc);border-radius:8px;padding:10px 12px;background:var(--surface-2);min-width:0}
+.registro-cab{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted);margin-bottom:4px;flex-wrap:wrap}
+.registro-cab b{color:var(--pc);font-weight:600}
+.registro-cab .tipo{font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--fg)}
+.registro-cab button{margin-left:auto;border:0;background:none;color:var(--faint);cursor:pointer;font-size:12px}
+.registro p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.registro img{max-width:100%;max-height:260px;border-radius:6px;margin-top:6px;cursor:zoom-in;display:block}
+.registro a{overflow-wrap:anywhere}
+.form-registro{display:flex;flex-direction:column;gap:10px;border:1px dashed var(--line);border-radius:10px;padding:12px}
+.previa-img{max-height:120px;border-radius:6px}
+.erros{border:1px solid var(--danger);background:var(--danger-soft);border-radius:8px;padding:10px 14px;font-size:13px}
+.erros ul,.mudancas ul{margin:6px 0 0;padding-left:18px}
+.mudancas{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:12px 14px;font-size:13px}
+.mudancas .novo{color:var(--ok)} .mudancas .alt{color:var(--warn)}
+pre.codigo{margin:0;max-height:340px;overflow:auto;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:12px;font:12px/1.5 var(--f-mono);white-space:pre-wrap;overflow-wrap:anywhere}
+.escolha-pessoa{display:flex;gap:8px;flex-wrap:wrap}
+.escolha-pessoa label{cursor:pointer}
+.escolha-pessoa input{position:absolute;opacity:0}
+.escolha-pessoa span{display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.escolha-pessoa input:checked+span{border-color:var(--pc);background:var(--pc-soft);color:var(--fg)}
+.escolha-pessoa input:focus-visible+span{outline:2px solid var(--accent)}
+.status-btns{display:flex;gap:6px;flex-wrap:wrap}
+.status-btns button{border:1px solid var(--line);background:none;border-radius:999px;padding:5px 12px;cursor:pointer;font-size:13px;color:var(--muted)}
+.status-btns button.ativo{color:var(--fg);border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.status-btns button.ativo[data-status=concluida]{border-color:var(--ok);background:var(--ok-soft)}
+.status-btns button.ativo[data-status=bloqueada]{border-color:var(--danger);background:var(--danger-soft)}
+.alerta{display:grid;grid-template-columns:8px minmax(0,1fr);gap:10px;padding:9px 0;border-top:1px solid var(--line);align-items:start;cursor:pointer;background:none;border-left:0;border-right:0;border-bottom:0;text-align:left;width:100%}
+.alerta:first-child{border-top:0}
+.alerta i{width:8px;height:8px;border-radius:50%;margin-top:6px;background:var(--muted)}
+.alerta.danger i{background:var(--danger)} .alerta.warn i{background:var(--warn)} .alerta.ok i{background:var(--ok)} .alerta.novo i{background:var(--accent)}
+.alerta small{display:block;color:var(--muted);font-size:12px}
+.img-grande{max-width:100%;border-radius:8px;display:block;margin:auto}
+
+/* login */
+.entrada{min-height:100vh;display:grid;place-items:center;padding-inline:16px;padding-block:40px}
+.entrada-box{width:min(520px,100%);text-align:center}
+.entrada h1{font:700 clamp(30px,6vw,44px)/1.05 var(--f-display);margin:18px 0 8px;letter-spacing:-.02em}
+.entrada p{color:var(--muted);margin:0 0 28px}
+.entrada .marca-sinal{width:54px;height:54px;font-size:18px;margin:auto;border-radius:14px}
+.entrada-opcoes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.entrada-opcoes button{padding:22px 16px;border-radius:14px;border:1px solid var(--line);background:var(--surface);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:10px;transition:border-color .2s,transform .2s}
+.entrada-opcoes button:hover{border-color:var(--pc);transform:translateY(-2px)}
+.entrada-opcoes .av{width:48px;height:48px;font-size:18px}
+.entrada-opcoes b{font:600 16px var(--f-display)}
+
+.sync{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-right:4px;white-space:nowrap}
+.sync i{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.sync.salvando i{background:var(--warn)} .sync.erro i{background:var(--danger)} .sync.erro{color:var(--danger)}
+.form-login{display:flex;flex-direction:column;gap:12px;text-align:left}
+.form-login .btn{justify-content:center;padding:11px}
+input[type=email],input[type=password]{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2)}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:500;opacity:0;pointer-events:none;transition:all .25s;z-index:80;max-width:calc(100% - 32px)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+@keyframes surgir{from{opacity:0}}
+@keyframes subir{from{opacity:0;transform:translateY(10px)}}
+.vista.anim{animation:subir .25s ease}
+.fundo.fixo,.fundo.fixo .modal{animation:none}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+@media (max-width:1100px){.g3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .lateral{position:fixed;top:auto;bottom:0;left:0;right:0;height:auto;z-index:40;flex-direction:row;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));border-right:0;border-top:1px solid var(--line);gap:0}
+  .marca,.lateral-pe{display:none}
+  .nav{flex-direction:row;justify-content:space-around;width:100%}
+  .nav button{flex-direction:column;gap:2px;font-size:10px;padding:6px 4px;flex:1;align-items:center}
+  .principal{padding-bottom:110px}
+  .g2,.g3{grid-template-columns:minmax(0,1fr)}
+  .numeros{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .usuario .nome-u{display:none}
+  .usuario{padding-right:4px}
+  .sync{font-size:0;gap:0}
+}
+@media (max-width:480px){
+  .item{grid-template-columns:auto minmax(0,1fr) auto}
+  .item>.av{display:none}
+  .topo-dir .btn.prim .txt{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal-raiz"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script>
+'use strict';
+/* =====================================================================
+   CSL Gestão · app de tarefas e projetos de Legat e Ricardo Romão
+   Com SUPABASE_URL e SUPABASE_CHAVE_PUBLICA preenchidos, os dados ficam
+   no Supabase (login, tempo real, prints). Em branco, funciona no modo
+   local (dados só neste navegador). Só "Dados"/"Nuvem" leem e gravam.
+   ===================================================================== */
+
+/* ---------- pessoas e constantes ---------- */
+const PESSOAS = {
+  'Legat':         { curto: 'Legat',   ini: 'L', cls: 'p-legat' },
+  'Ricardo Romão': { curto: 'Ricardo', ini: 'R', cls: 'p-ricardo' }
+};
+const NOMES = Object.keys(PESSOAS);
+const STATUS = { pendente: 'Pendente', em_andamento: 'Em andamento', concluida: 'Concluída', bloqueada: 'Bloqueada' };
+const PRIOR = { baixa: 'Baixa', media: 'Média', alta: 'Alta' };
+const DIAS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const TIPOS_REG = { nota: 'Nota', link: 'Link', print: 'Print', resumo: 'Resumo' };
+
+/* ---------- configuração do Supabase ----------
+   Supabase > Project Settings > API: copie "Project URL" e a chave "anon public".
+   A chave pública pode ficar aqui; quem protege os dados são as regras do banco. */
+const SUPABASE_URL = 'https://zthftoeqirnmpcqhmhao.supabase.co';
+const SUPABASE_CHAVE_PUBLICA = 'sb_publishable_KLwoQStfaWnv4fl6YJXDaA_WcyVSZAy';
+const MODO_NUVEM = !!(SUPABASE_URL && SUPABASE_CHAVE_PUBLICA);
+
+/* ---------- sincronização com o Supabase ---------- */
+const Nuvem = (() => {
+  if (!MODO_NUVEM || !window.supabase) return null;
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_CHAVE_PUBLICA);
+  const TABELAS = ['tarefas', 'projetos', 'historico', 'config'];
+  const novoSnap = () => ({ tarefas: new Map(), projetos: new Map(), historico: new Map(), config: new Map() });
+  let snap = novoSnap(), atual = null, timer = null, enviando = false, deNovo = false, canal = null;
+  let estado = { st: 'ok', msg: '' };
+  const ouvintes = [], urls = new Map();
+
+  // Cada tarefa, projeto e evento do histórico é uma linha; ajustes viram chaves "vistos:Legat", "horas_dia:Legat".
+  function linhasDe(db) {
+    const m = novoSnap();
+    db.tarefas.forEach(t => m.tarefas.set(t.id, t));
+    db.projetos.forEach(p => m.projetos.set(p.id, p));
+    db.historico.forEach(h => m.historico.set(h.id, h));
+    NOMES.forEach(n => {
+      if (db.vistos[n]) m.config.set('vistos:' + n, db.vistos[n]);
+      if (db.horas_dia[n] !== undefined) m.config.set('horas_dia:' + n, db.horas_dia[n]);
+    });
+    return m;
+  }
+  const linha = (tab, id, v) => tab === 'config' ? { chave: id, valor: v, atualizado_em: agora() }
+    : tab === 'historico' ? { id, dados: v, em: v.em } : { id, dados: v, atualizado_em: agora() };
+  const temPendencia = () => { if (!atual) return false; const m = linhasDe(atual); return TABELAS.some(t => m[t].size !== snap[t].size || [...m[t]].some(([id, v]) => snap[t].get(id) !== JSON.stringify(v))); };
+
+  function marcar(st, msg = '') {
+    estado = { st, msg };
+    const el = document.getElementById('sync');
+    if (el) { el.className = 'sync ' + st; el.innerHTML = textoSync(); }
+  }
+  function textoSync() {
+    return '<i></i>' + ({ ok: 'Sincronizado', salvando: 'Salvando…', erro: 'Sem conexão, tentando de novo' }[estado.st] || '');
+  }
+
+  async function sessao() { const { data } = await sb.auth.getSession(); return data.session; }
+  async function entrar(email, senha) { const { error } = await sb.auth.signInWithPassword({ email, password: senha }); if (error) throw error; }
+  async function sair() {
+    try { if (canal) await sb.removeChannel(canal); } catch (e) {}
+    canal = null; atual = null; snap = novoSnap();
+    await sb.auth.signOut();
+  }
+  async function perfil() {
+    const { data: u } = await sb.auth.getUser(); if (!u?.user) return null;
+    const { data, error } = await sb.from('perfis').select('nome').eq('id', u.user.id).maybeSingle();
+    if (error) throw error; return data?.nome || null;
+  }
+  async function carregar() {
+    const res = await Promise.all([
+      sb.from('tarefas').select('id,dados'),
+      sb.from('projetos').select('id,dados'),
+      sb.from('historico').select('id,dados').order('em', { ascending: false }).limit(800),
+      sb.from('config').select('chave,valor')
+    ]);
+    const falha = res.find(r => r.error); if (falha) throw falha.error;
+    const [t, p, h, c] = res.map(r => r.data);
+    const db = { versao: 1, tarefas: t.map(r => r.dados), projetos: p.map(r => r.dados), historico: h.map(r => r.dados), vistos: {}, horas_dia: { 'Legat': 6, 'Ricardo Romão': 6 } };
+    c.forEach(r => { const [k, n] = r.chave.split(':'); if (k === 'vistos') db.vistos[n] = r.valor; if (k === 'horas_dia') db.horas_dia[n] = r.valor; });
+    snap = novoSnap();
+    const m = linhasDe(db);
+    TABELAS.forEach(tab => m[tab].forEach((v, id) => snap[tab].set(id, JSON.stringify(v))));
+    atual = db; marcar('ok');
+    return db;
+  }
+  // Grava só o que mudou desde a última sincronização.
+  function salvar(db) { atual = db; marcar('salvando'); clearTimeout(timer); timer = setTimeout(enviar, 350); }
+  async function enviar() {
+    if (enviando) { deNovo = true; return; }
+    enviando = true;
+    try {
+      const m = linhasDe(atual);
+      for (const tab of TABELAS) {
+        const up = [], fotos = new Map(), del = [];
+        m[tab].forEach((v, id) => { const s = JSON.stringify(v); if (snap[tab].get(id) !== s) { up.push(linha(tab, id, v)); fotos.set(id, s); } });
+        snap[tab].forEach((_, id) => { if (!m[tab].has(id)) del.push(id); });
+        if (up.length) { const { error } = await sb.from(tab).upsert(up); if (error) throw error; fotos.forEach((s, id) => snap[tab].set(id, s)); }
+        if (del.length) { const { error } = await sb.from(tab).delete().in(tab === 'config' ? 'chave' : 'id', del); if (error) throw error; del.forEach(id => snap[tab].delete(id)); }
+      }
+      marcar(temPendencia() ? 'salvando' : 'ok');
+    } catch (e) {
+      marcar('erro', e.message || String(e));
+      clearTimeout(timer); timer = setTimeout(enviar, 5000);
+    } finally {
+      enviando = false;
+      if (deNovo) { deNovo = false; enviar(); }
+    }
+  }
+  // Mudança feita pelo sócio (ou eco da nossa própria gravação).
+  function aplicarRemoto(tab, ev) {
+    if (!atual) return;
+    const novo = ev.new || {}, velho = ev.old || {};
+    const id = tab === 'config' ? (novo.chave || velho.chave) : (novo.id || velho.id);
+    if (!id) return;
+    const local = linhasDe(atual)[tab].get(id);
+    const localS = local === undefined ? undefined : JSON.stringify(local);
+    if (localS !== snap[tab].get(id)) return; // temos uma alteração nossa ainda indo para o banco: ela prevalece
+    if (ev.eventType === 'DELETE') {
+      if (localS === undefined) return;
+      snap[tab].delete(id);
+      if (tab === 'config') { const [k, n] = id.split(':'); if (k === 'vistos') delete atual.vistos[n]; }
+      else atual[tab] = atual[tab].filter(x => x.id !== id);
+    } else {
+      const v = tab === 'config' ? novo.valor : novo.dados;
+      const s = JSON.stringify(v); if (s === localS) return;
+      snap[tab].set(id, s);
+      if (tab === 'config') { const [k, n] = id.split(':'); if (k === 'vistos') atual.vistos[n] = v; if (k === 'horas_dia') atual.horas_dia[n] = v; }
+      else {
+        const lista = atual[tab], k = lista.findIndex(x => x.id === id);
+        if (k >= 0) lista[k] = v; else lista.push(v);
+        if (tab === 'historico') lista.sort((a, b) => (b.em || '').localeCompare(a.em || ''));
+      }
+    }
+    ouvintes.forEach(f => f(atual));
+  }
+  function assinar() {
+    if (canal) return;
+    canal = sb.channel('csl-gestao');
+    TABELAS.forEach(tab => canal.on('postgres_changes', { event: '*', schema: 'public', table: tab }, ev => aplicarRemoto(tab, ev)));
+    canal.subscribe(st => {
+      if (st === 'SUBSCRIBED') { if (estado.st === 'erro' && !temPendencia()) recarregar(); else if (estado.st !== 'salvando') marcar('ok'); }
+      else if (st === 'CHANNEL_ERROR' || st === 'TIMED_OUT') marcar('erro', 'tempo real desconectado');
+    });
+  }
+  // Ao voltar para a aba, busca tudo de novo (cobre o que chegou com o computador dormindo).
+  async function recarregar() {
+    if (!atual || enviando || temPendencia()) return;
+    try { const db = await carregar(); ouvintes.forEach(f => f(db)); } catch (e) { marcar('erro', e.message); }
+  }
+  try { document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') recarregar(); }); } catch (e) {}
+
+  async function enviarImagem(dataUrl) {
+    const blob = await (await fetch(dataUrl)).blob();
+    const caminho = `${hoje().slice(0, 7)}/${uid('print')}.jpg`;
+    const { error } = await sb.storage.from('prints').upload(caminho, blob, { contentType: 'image/jpeg' });
+    if (error) throw error;
+    return caminho;
+  }
+  async function urlImagem(caminho) {
+    const c = urls.get(caminho); if (c && c.ate > Date.now()) return c.url;
+    const { data, error } = await sb.storage.from('prints').createSignedUrl(caminho, 3600);
+    if (error) throw error;
+    urls.set(caminho, { url: data.signedUrl, ate: Date.now() + 3500e3 });
+    return data.signedUrl;
+  }
+  function apagarImagem(caminho) { sb.storage.from('prints').remove([caminho]).catch(() => {}); }
+
+  return { sessao, entrar, sair, perfil, carregar, salvar, assinar, enviarImagem, urlImagem, apagarImagem, textoSync, estado: () => estado, aoMudar: f => ouvintes.push(f) };
+})();
+
+/* ---------- camada de dados: Supabase quando configurado, senão o navegador ---------- */
+const Dados = (() => {
+  const CHAVE = 'csl-gestao-dados-v1';
+  const ouvintes = [];
+  let memoria = null;
+  function carregar() {
+    try { const s = localStorage.getItem(CHAVE); if (s) return JSON.parse(s); } catch (e) {}
+    return memoria;
+  }
+  function salvar(db) {
+    if (Nuvem) { Nuvem.salvar(db); return true; }
+    memoria = db;
+    try { localStorage.setItem(CHAVE, JSON.stringify(db)); return true; }
+    catch (e) { toast('Não consegui salvar no navegador. Talvez as imagens tenham enchido o espaço.'); return false; }
+  }
+  if (!MODO_NUVEM) try {
+    window.addEventListener('storage', e => {
+      if (e.key === CHAVE && e.newValue) { try { const novo = JSON.parse(e.newValue); ouvintes.forEach(f => f(novo)); } catch (er) {} }
+    });
+  } catch (e) {}
+  return { carregar, salvar, aoMudar: f => { ouvintes.push(f); if (Nuvem) Nuvem.aoMudar(f); } };
+})();
+const Pref = {
+  ler(k, padrao) { try { const v = localStorage.getItem('csl-pref-' + k); return v === null ? padrao : JSON.parse(v); } catch (e) { return padrao; } },
+  gravar(k, v) { try { localStorage.setItem('csl-pref-' + k, JSON.stringify(v)); } catch (e) {} }
+};
+
+/* ---------- utilidades ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const hoje = () => ymd(new Date());
+const pd = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const addD = (s, n) => { const d = pd(s); d.setDate(d.getDate() + n); return ymd(d); };
+const difD = (a, b) => Math.round((pd(b) - pd(a)) / 864e5);
+const diasUteis = (a, b) => { let n = 0; for (let s = a; s <= b; s = addD(s, 1)) { const w = pd(s).getDay(); if (w !== 0 && w !== 6) n++; } return n; };
+const inicioSemana = s => addD(s, -((pd(s).getDay() + 6) % 7));
+const fmtD = s => { const d = pd(s); return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}`; };
+const fmtLongo = s => pd(s).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+const fmtMes = s => { const t = pd(s).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }); return t.charAt(0).toUpperCase() + t.slice(1); };
+const diaDe = iso => ymd(new Date(iso));
+const horaDe = iso => new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+const quando = iso => { const d = diaDe(iso); const h = hoje(); return (d === h ? 'hoje' : d === addD(h, -1) ? 'ontem' : fmtD(d)) + ' às ' + horaDe(iso); };
+const agora = () => new Date().toISOString();
+const isoBR = () => { const d = new Date(); const o = -d.getTimezoneOffset(); const s = o >= 0 ? '+' : '-'; return `${ymd(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${s}${pad(Math.floor(Math.abs(o) / 60))}:${pad(Math.abs(o) % 60)}`; };
+const uid = p => p + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const fmtH = h => (Math.round(h * 10) / 10).toString().replace('.', ',') + 'h';
+const curto = n => PESSOAS[n]?.curto || n;
+const pcls = n => PESSOAS[n]?.cls || 'p-legat';
+const outro = n => NOMES.find(x => x !== n);
+const avatar = (n, peq) => `<span class="av ${peq ? 'p' : ''} ${pcls(n)}" title="${esc(n)}">${PESSOAS[n]?.ini || '?'}</span>`;
+const ehData = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(pd(s)) && ymd(pd(s)) === s;
+
+const ICON = {
+  painel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
+  tarefas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 6 1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11M3.5 18l1.5 1.5L7.5 17"/></svg>',
+  projetos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+  calendario: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  resumo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  sino: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>',
+  ajustes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  mais: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
+  tema: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>'
+};
+
+/* ---------- dados de exemplo (marcados com exemplo: true) ---------- */
+function dadosExemplo() {
+  const T = hoje(), L = 'Legat', R = 'Ricardo Romão';
+  const em = (dias, h, m) => { const d = pd(addD(T, dias)); d.setHours(h, m); return d.toISOString(); };
+  const haHoras = h => new Date(Date.now() - h * 36e5).toISOString();
+  const etapa = (id, titulo, descricao, resp, horas, ini, prazo, dep, status, conc, por) => ({
+    id, titulo, descricao, responsavel: resp, horas_estimadas: horas, data_inicio: addD(T, ini), prazo: addD(T, prazo),
+    depende_de: dep, status, links: [], observacoes: '', registros: [],
+    ...(conc ? { concluida_em: conc, concluida_por: por } : {}), criado_por: R, criado_em: em(-7, 9, 0)
+  });
+  const projeto = {
+    id: 'site-csl-consultoria', exemplo: true, titulo: 'Criação do site da CSL Consultoria',
+    descricao: 'Site institucional com páginas de serviços e contato.', responsavel: R, prioridade: 'alta',
+    data_inicio: addD(T, -7), prazo_final: addD(T, 49), criado_por: R, criado_em: em(-7, 9, 0),
+    etapas: [
+      etapa('E01', 'Definir estrutura e páginas do site', 'Listar páginas, textos e referências visuais.', R, 3, -7, -5, [], 'concluida', em(-5, 10, 40), R),
+      etapa('E02', 'Escrever textos das páginas de serviços', 'Textos de apresentação, serviços e sobre nós.', L, 6, -4, -1, [], 'concluida', em(-2, 15, 10), L),
+      etapa('E03', 'Criar layout das páginas', 'Layout da home e das páginas internas, versão desktop e celular.', R, 10, -1, 4, ['E01'], 'em_andamento'),
+      etapa('E04', 'Montar páginas e formulário de contato', 'Implementar o layout aprovado e ligar o formulário.', R, 12, 5, 16, ['E03'], 'pendente'),
+      etapa('E05', 'Revisão final e publicação', 'Revisar textos, testar no celular e publicar.', L, 4, 17, 21, ['E02', 'E04'], 'pendente')
+    ]
+  };
+  projeto.etapas[1].registros.push({ id: uid('r'), tipo: 'resumo', texto: 'Textos das 4 páginas de serviço prontos e revisados. Faltou só a página "Sobre", que entra junto com a revisão final.', autor: L, em: em(-2, 15, 12) });
+  projeto.etapas[2].registros.push({ id: uid('r'), tipo: 'link', texto: 'Referências de layout separadas', url: 'https://example.com/referencias-layout', autor: R, em: haHoras(5) });
+  const tarefa = (titulo, descricao, resp, por, prior, prazo, horas, status, extra = {}) => ({
+    id: uid('t'), exemplo: true, titulo, descricao, responsavel: resp, criado_por: por, prioridade: prior,
+    data_inicio: addD(T, Math.min(prazo, 0) - 2), prazo: addD(T, prazo), horas_estimadas: horas, status,
+    registros: [], criado_em: em(-6, 10, 0), ...extra
+  });
+  const tarefas = [
+    tarefa('Revisar contrato padrão de consultoria', 'Conferir cláusulas de prazo e multa antes de mandar para o próximo cliente.', L, R, 'alta', 0, 2, 'em_andamento', { criado_em: haHoras(26) }),
+    tarefa('Organizar planilha de custos do mês', 'Separar custos fixos e variáveis de setembro.', R, L, 'media', -1, 3, 'pendente', { criado_em: em(-4, 9, 30) }),
+    tarefa('Preparar apresentação institucional', '10 a 12 slides com serviços, cases e equipe.', L, L, 'alta', 1, 5, 'pendente'),
+    tarefa('Atualizar perfil da CSL no LinkedIn', 'Foto, descrição e lista de serviços.', R, L, 'baixa', -2, 1.5, 'concluida', { concluida_em: em(-3, 11, 5), concluida_por: R }),
+    tarefa('Levantar orçamentos de hospedagem', 'Comparar 3 opções gratuitas ou baratas para o site.', R, L, 'media', -1, 1, 'concluida', { concluida_em: em(-1, 17, 45), concluida_por: R }),
+    tarefa('Reunião de alinhamento semanal', 'Pauta: site, contrato padrão, prospecção.', L, L, 'media', 0, 1, 'concluida', { concluida_em: haHoras(3), concluida_por: L }),
+    tarefa('Listar 20 empresas para prospecção', 'Empresas de médio porte da região, com contato do responsável.', R, L, 'media', 8, 4, 'pendente', { criado_em: haHoras(2) })
+  ];
+  tarefas[3].registros.push({ id: uid('r'), tipo: 'link', texto: 'Perfil atualizado', url: 'https://www.linkedin.com/', autor: R, em: em(-3, 11, 6) });
+  tarefas[4].registros.push({ id: uid('r'), tipo: 'nota', texto: 'GitHub Pages e Netlify são gratuitos e servem para o nosso caso. Sugiro GitHub Pages.', autor: R, em: em(-1, 17, 44) });
+  const historico = [
+    { em: haHoras(2), autor: L, texto: 'Legat criou a tarefa "Listar 20 empresas para prospecção" para Ricardo' },
+    { em: haHoras(3), autor: L, texto: 'Legat concluiu a tarefa "Reunião de alinhamento semanal"' },
+    { em: haHoras(5), autor: R, texto: 'Ricardo adicionou um link em "Criar layout das páginas"' },
+    { em: haHoras(6), autor: R, texto: 'Ricardo iniciou a etapa "Criar layout das páginas"' },
+    { em: em(-1, 17, 45), autor: R, texto: 'Ricardo concluiu a tarefa "Levantar orçamentos de hospedagem"' },
+    { em: haHoras(26), autor: R, texto: 'Ricardo criou a tarefa "Revisar contrato padrão de consultoria" para Legat' },
+    { em: em(-2, 15, 10), autor: L, texto: 'Legat concluiu a etapa "Escrever textos das páginas de serviços"' },
+    { em: em(-3, 11, 5), autor: R, texto: 'Ricardo concluiu a tarefa "Atualizar perfil da CSL no LinkedIn"' },
+    { em: em(-5, 10, 40), autor: R, texto: 'Ricardo concluiu a etapa "Definir estrutura e páginas do site"' },
+    { em: em(-7, 9, 0), autor: R, texto: 'Ricardo importou o plano "Criação do site da CSL Consultoria" (5 etapas)' }
+  ].map(h => ({ id: uid('h'), exemplo: true, ...h }));
+  return { versao: 1, projetos: [projeto], tarefas, historico, vistos: {}, horas_dia: { 'Legat': 6, 'Ricardo Romão': 6 }, atualizado_em: agora() };
+}
+
+/* ---------- estado ---------- */
+const vazio = () => ({ versao: 1, projetos: [], tarefas: [], historico: [], vistos: {}, horas_dia: { 'Legat': 6, 'Ricardo Romão': 6 } });
+function normalizar() {
+  db.tarefas = db.tarefas || []; db.projetos = db.projetos || [];
+  db.vistos = db.vistos || {}; db.horas_dia = db.horas_dia || { 'Legat': 6, 'Ricardo Romão': 6 }; db.historico = db.historico || [];
+  db.historico.forEach(h => { if (!h.id) h.id = uid('h'); });
+}
+let db = MODO_NUVEM ? vazio() : Dados.carregar();
+if (!MODO_NUVEM && (!db || !Array.isArray(db.tarefas))) { db = dadosExemplo(); Dados.salvar(db); }
+normalizar();
+let eu = MODO_NUVEM ? null : Pref.ler('usuario', null); if (!PESSOAS[eu]) eu = null;
+let carregando = false;
+const login = { email: Pref.ler('email', ''), erro: '' };
+const ui = {
+  aba: Pref.ler('aba', 'painel'), pessoa: 'todos', status: 'abertas', busca: '', comEtapas: true,
+  calModo: 'mes', calRef: hoje(), calPessoa: 'todos', resumoModo: 'semana', resumoRef: hoje()
+};
+let modalAtual = null, imagemPendente = null, planoPendente = null, backupPendente = null;
+
+function aplicarTema() { document.documentElement.setAttribute('data-theme', Pref.ler('tema', 'dark')); }
+aplicarTema();
+
+/* ---------- itens unificados (tarefas avulsas + etapas de projetos) ---------- */
+function itens() {
+  const out = [];
+  db.tarefas.forEach(t => out.push({ tipo: 'tarefa', id: t.id, obj: t, projeto: null, titulo: t.titulo, responsavel: t.responsavel, prazo: t.prazo, inicio: t.data_inicio, status: t.status, horas: +t.horas_estimadas || 0, concluida_em: t.concluida_em, prioridade: t.prioridade, exemplo: !!t.exemplo, criado_por: t.criado_por, criado_em: t.criado_em }));
+  db.projetos.forEach(p => p.etapas.forEach(e => out.push({ tipo: 'etapa', id: p.id + '/' + e.id, obj: e, projeto: p, titulo: e.titulo, responsavel: e.responsavel, prazo: e.prazo, inicio: e.data_inicio, status: e.status, horas: +e.horas_estimadas || 0, concluida_em: e.concluida_em, prioridade: p.prioridade, exemplo: !!p.exemplo, criado_por: e.criado_por || p.criado_por, criado_em: e.criado_em || p.criado_em })));
+  return out;
+}
+const acharItem = id => itens().find(i => i.id === id);
+const aberto = i => i.status !== 'concluida';
+const atrasado = i => aberto(i) && i.prazo && i.prazo < hoje();
+const temExemplos = () => db.tarefas.some(t => t.exemplo) || db.projetos.some(p => p.exemplo);
+
+function progresso(p) {
+  const tot = p.etapas.reduce((s, e) => s + (+e.horas_estimadas || 0), 0);
+  if (tot > 0) return Math.round(100 * p.etapas.filter(e => e.status === 'concluida').reduce((s, e) => s + (+e.horas_estimadas || 0), 0) / tot);
+  return p.etapas.length ? Math.round(100 * p.etapas.filter(e => e.status === 'concluida').length / p.etapas.length) : 0;
+}
+function faltaProjeto(p) {
+  const horas = p.etapas.filter(e => e.status !== 'concluida').reduce((s, e) => s + (+e.horas_estimadas || 0), 0);
+  const du = p.prazo_final >= hoje() ? diasUteis(hoje(), p.prazo_final) : 0;
+  return { horas, du };
+}
+
+/* ---------- mudanças + histórico ---------- */
+function mudar(fn, texto) {
+  fn();
+  if (texto) { db.historico.unshift({ id: uid('h'), em: agora(), autor: eu, texto }); db.historico = db.historico.slice(0, 800); }
+  db.atualizado_em = agora();
+  Dados.salvar(db);
+  render();
+  atualizarModal();
+}
+Dados.aoMudar(novo => {
+  db = novo;
+  if (document.activeElement?.id === 'busca') { const l = $('#lista-tarefas'); if (l) l.innerHTML = listaTarefas(); return; }
+  render(); atualizarModal();
+});
+
+function definirStatus(id, novo) {
+  const it = acharItem(id); if (!it || it.status === novo) return;
+  const verbo = { concluida: 'concluiu', em_andamento: 'iniciou', bloqueada: 'marcou como bloqueada', pendente: 'reabriu' }[novo];
+  mudar(() => {
+    const o = it.obj; o.status = novo;
+    if (novo === 'concluida') { o.concluida_em = agora(); o.concluida_por = eu; } else { delete o.concluida_em; delete o.concluida_por; }
+  }, `${curto(eu)} ${verbo} ${it.tipo === 'etapa' ? 'a etapa' : 'a tarefa'} "${it.titulo}"`);
+  if (novo === 'concluida') toast('Concluída. Bom trabalho.');
+}
+
+/* ---------- avisos ---------- */
+function avisos() {
+  const h = hoje(), am = addD(h, 1), visto = db.vistos[eu] || '';
+  const out = [];
+  const todos = itens();
+  todos.filter(i => i.responsavel === eu && aberto(i) && i.prazo).forEach(i => {
+    if (i.prazo < h) out.push({ nivel: 'danger', txt: `Atrasada desde ${fmtD(i.prazo)}`, it: i, conta: true });
+    else if (i.prazo === h) out.push({ nivel: 'warn', txt: 'Prazo hoje', it: i, conta: true });
+    else if (i.prazo === am) out.push({ nivel: 'info', txt: 'Prazo amanhã', it: i });
+  });
+  todos.forEach(i => {
+    if (i.responsavel === eu && i.criado_por && i.criado_por !== eu && (i.criado_em || '') > visto) out.push({ nivel: 'novo', txt: `${curto(i.criado_por)} atribuiu a você`, it: i, conta: true });
+    const por = i.obj.concluida_por;
+    if (i.status === 'concluida' && por && por !== eu && (i.concluida_em || '') > visto) out.push({ nivel: 'ok', txt: `${curto(por)} concluiu`, it: i, conta: true });
+  });
+  return out;
+}
+function notificarNavegador() {
+  try {
+    if (!('Notification' in window) || Notification.permission !== 'granted' || !eu) return;
+    const chave = 'notif-' + eu + '-' + hoje();
+    if (Pref.ler(chave, false)) return;
+    const av = avisos().filter(a => a.nivel === 'danger' || a.nivel === 'warn');
+    if (!av.length) return;
+    new Notification('CSL Gestão', { body: `${av.length} tarefa(s) com prazo hoje ou atrasadas. Ex.: ${av[0].it.titulo}` });
+    Pref.gravar(chave, true);
+  } catch (e) {}
+}
+
+/* ---------- render geral ---------- */
+const ABAS = [['painel', 'Painel'], ['tarefas', 'Tarefas'], ['projetos', 'Projetos'], ['calendario', 'Calendário'], ['resumo', 'Resumo']];
+function render() {
+  const app = $('#app');
+  if (!eu) { app.innerHTML = telaEntrada(); return; }
+  const sync = Nuvem ? `<span id="sync" class="sync ${Nuvem.estado().st}" title="${esc(Nuvem.estado().msg)}">${Nuvem.textoSync()}</span>` : '';
+  const nAv = avisos().filter(a => a.conta).length;
+  const vista = { painel: vPainel, tarefas: vTarefas, projetos: vProjetos, calendario: vCalendario, resumo: vResumo }[ui.aba] || vPainel;
+  app.innerHTML = `
+  <div class="app">
+    <aside class="lateral">
+      <div class="marca"><div class="marca-sinal">CSL</div><div><b>Gestão</b><small>Consultoria</small></div></div>
+      <nav class="nav" aria-label="Seções">${ABAS.map(([k, n]) => `<button data-acao="aba" data-aba="${k}" class="${ui.aba === k ? 'ativo' : ''}" ${ui.aba === k ? 'aria-current="page"' : ''}>${ICON[k]}<span>${n}</span></button>`).join('')}</nav>
+      <div class="lateral-pe">
+        <button class="btn peq" data-acao="importar-plano">Importar plano</button>
+        <button class="btn peq" data-acao="copiar-modelo">Copiar modelo para o Claude</button>
+      </div>
+    </aside>
+    <main class="principal">
+      <div class="topo">
+        <div class="topo-esq"><div class="sub">${esc(fmtLongo(hoje()))}</div><h1>${tituloAba()}</h1></div>
+        <div class="topo-dir">
+          ${sync}
+          <button class="btn prim" data-acao="nova-tarefa">${ICON.mais}<span class="txt">Nova tarefa</span></button>
+          <button class="icone-btn" data-acao="avisos" title="Avisos" aria-label="Avisos">${ICON.sino}${nAv ? `<span class="contador">${nAv}</span>` : ''}</button>
+          <button class="icone-btn" data-acao="tema" title="Trocar tema claro/escuro" aria-label="Trocar tema">${ICON.tema}</button>
+          <button class="icone-btn" data-acao="ajustes" title="Ajustes e backup" aria-label="Ajustes">${ICON.ajustes}</button>
+          <button class="usuario ${pcls(eu)}" data-acao="${MODO_NUVEM ? 'ajustes' : 'trocar-usuario'}" title="${MODO_NUVEM ? 'Conta e ajustes' : 'Trocar de usuário'}">${avatar(eu)}<span class="nome-u">${esc(curto(eu))}</span></button>
+        </div>
+      </div>
+      ${temExemplos() ? `<div class="aviso-exemplo"><span><b>Dados de exemplo.</b> Os itens marcados como Exemplo servem só para mostrar o app. Removê-los não apaga o que vocês criarem.</span><button class="btn peq" data-acao="remover-exemplos">Remover exemplos</button></div>` : ''}
+      <div class="vista ${animarVista ? 'anim' : ''}">${vista()}</div>
+    </main>
+  </div>`;
+  animarVista = false;
+  resolverPrints();
+}
+let animarVista = true;
+function tituloAba() {
+  if (ui.aba === 'painel') { const h = new Date().getHours(); return `${h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'}, ${esc(curto(eu))}`; }
+  return { tarefas: 'Tarefas', projetos: 'Projetos', calendario: 'Calendário', resumo: 'Resumo' }[ui.aba];
+}
+function telaEntrada() {
+  if (MODO_NUVEM) {
+    const corpo = !Nuvem
+      ? `<h1>Sem conexão</h1><p>Não consegui carregar o Supabase. Confira a internet; se estiver na rede da empresa, ela pode estar bloqueando o site cdn.jsdelivr.net.</p>`
+      : carregando
+        ? `<h1>Carregando…</h1><p>Buscando as tarefas no banco.</p>`
+        : `<h1>Entrar</h1><p>Use o e-mail e a senha criados para você no Supabase. Os dois veem e editam tudo.</p>
+          <form class="form-login" data-form="login">
+            <label class="campo">E-mail<input type="email" id="login-email" autocomplete="username" required value="${esc(login.email)}" ${login.email ? '' : 'autofocus'}></label>
+            <label class="campo">Senha<input type="password" id="login-senha" autocomplete="current-password" required ${login.email ? 'autofocus' : ''}></label>
+            ${login.erro ? `<div class="erros">${esc(login.erro)}</div>` : ''}
+            <button class="btn prim" type="submit">Entrar</button>
+          </form>`;
+    return `<div class="entrada"><div class="entrada-box"><div class="marca-sinal">CSL</div>${corpo}</div></div>`;
+  }
+  return `<div class="entrada"><div class="entrada-box">
+    <div class="marca-sinal">CSL</div>
+    <h1>Quem está usando?</h1>
+    <p>O app mostra tudo para os dois. Escolher o seu nome define o "meu dia", os avisos e quem aparece como autor do que você registrar.</p>
+    <div class="entrada-opcoes">${NOMES.map(n => `<button class="${pcls(n)}" data-acao="entrar" data-nome="${esc(n)}">${avatar(n)}<b>${esc(n)}</b></button>`).join('')}</div>
+  </div></div>`;
+}
+
+/* ---------- linha de item ---------- */
+function prazoInfo(it) {
+  if (!it.prazo) return { txt: 'Sem prazo', cls: '' };
+  if (it.status === 'concluida') return { txt: '✓ ' + fmtD(diaDe(it.concluida_em || agora())), cls: 'ok' };
+  const d = difD(hoje(), it.prazo);
+  if (d < 0) return { txt: `Atrasada ${-d}d`, cls: 'danger' };
+  if (d === 0) return { txt: 'Hoje', cls: 'warn' };
+  if (d === 1) return { txt: 'Amanhã', cls: 'warn' };
+  return { txt: (d < 7 ? DIAS[pd(it.prazo).getDay()] + ' ' : '') + fmtD(it.prazo), cls: '' };
+}
+function linhaItem(it) {
+  const p = prazoInfo(it), feito = it.status === 'concluida', nreg = (it.obj.registros || []).length;
+  return `<div class="item ${pcls(it.responsavel)} ${feito ? 'feito' : ''}">
+    <label class="check" title="${feito ? 'Reabrir' : 'Marcar como concluída'}"><input type="checkbox" data-mudar="concluir" data-id="${esc(it.id)}" ${feito ? 'checked' : ''} aria-label="Concluir ${esc(it.titulo)}"><span></span></label>
+    <button class="item-corpo" data-acao="abrir-item" data-id="${esc(it.id)}">
+      <span class="item-titulo">${esc(it.titulo)}</span>
+      <span class="item-meta">${it.projeto ? `<span class="tag">${esc(it.projeto.titulo)} · ${esc(it.obj.id)}</span>` : ''}${it.status === 'em_andamento' ? '<span class="tag andamento">Em andamento</span>' : ''}${it.status === 'bloqueada' ? '<span class="tag danger">Bloqueada</span>' : ''}${it.prioridade === 'alta' && !feito ? '<span class="tag">Prioridade alta</span>' : ''}${nreg ? `<span class="tag">${nreg} registro${nreg > 1 ? 's' : ''}</span>` : ''}${it.exemplo ? '<span class="tag ex">Exemplo</span>' : ''}${it.horas ? `<span class="mono faint">${fmtH(it.horas)}</span>` : ''}</span>
+    </button>
+    <span class="prazo ${p.cls}">${p.txt}</span>
+    ${avatar(it.responsavel, true)}
+  </div>`;
+}
+const ordemPrazo = (a, b) => (a.prazo || '9999') < (b.prazo || '9999') ? -1 : (a.prazo || '9999') > (b.prazo || '9999') ? 1 : 0;
+
+/* ---------- PAINEL ---------- */
+function diaDe_(pessoa) {
+  const h = hoje();
+  return itens().filter(i => i.responsavel === pessoa && (
+    (aberto(i) && i.prazo && i.prazo <= h) || i.status === 'em_andamento' || (i.status === 'concluida' && i.concluida_em && diaDe(i.concluida_em) === h)
+  )).sort((a, b) => (a.status === 'concluida') - (b.status === 'concluida') || ordemPrazo(a, b));
+}
+function cargaPessoa(p) {
+  const h = hoje(), lim = addD(h, 6);
+  const horas = itens().filter(i => i.responsavel === p && aberto(i) && i.prazo && i.prazo <= lim).reduce((s, i) => s + i.horas, 0);
+  const du = diasUteis(h, lim), cap = du * (+db.horas_dia[p] || 6);
+  return { horas, du, cap };
+}
+function vPainel() {
+  const meus = itens().filter(i => i.responsavel === eu);
+  const atr = meus.filter(atrasado).length, hj = meus.filter(i => aberto(i) && i.prazo === hoje()).length;
+  const and = meus.filter(i => i.status === 'em_andamento').length;
+  const ini7 = addD(hoje(), -6);
+  const sem = meus.filter(i => i.status === 'concluida' && i.concluida_em && diaDe(i.concluida_em) >= ini7).length;
+  const coluna = p => {
+    const l = diaDe_(p);
+    return `<section class="painel dia-col ${pcls(p)}"><h2>${avatar(p)}<span class="cabeca-pessoa">${p === eu ? 'Meu dia' : 'Dia do ' + esc(curto(p))}</span><span class="tag">${l.filter(aberto).length} em aberto</span><button class="btn peq acao" data-acao="nova-tarefa" data-resp="${esc(p)}" data-prazo="${hoje()}">${ICON.mais}${p === eu ? 'Para mim' : 'Para ' + esc(curto(p))}</button></h2>
+      <div class="lista">${l.length ? l.map(linhaItem).join('') : `<div class="vazio">Nada vencendo hoje nem em andamento.</div>`}</div></section>`;
+  };
+  const projs = db.projetos.filter(p => progresso(p) < 100);
+  const av = avisos();
+  return `
+  <div class="numeros">
+    <div class="numero ${atr ? 'danger' : ''}"><b>${atr}</b><span>Minhas atrasadas</span></div>
+    <div class="numero ${hj ? 'warn' : ''}"><b>${hj}</b><span>Vencem hoje</span></div>
+    <div class="numero"><b>${and}</b><span>Em andamento</span></div>
+    <div class="numero ok"><b>${sem}</b><span>Concluí nos últimos 7 dias</span></div>
+  </div>
+  <div class="grade g2">${coluna(eu)}${coluna(outro(eu))}</div>
+  <div class="grade g3" style="margin-top:16px">
+    <section class="painel"><h2>Horas necessárias x disponíveis <span class="tag">próximos 7 dias</span></h2>
+      <div class="carga">${NOMES.map(p => { const c = cargaPessoa(p), pct = c.cap ? Math.min(100, c.horas / c.cap * 100) : 0;
+        return `<div class="carga-linha ${pcls(p)}"><div class="carga-topo"><span>${avatar(p, true)} ${esc(curto(p))}</span><span class="mono">${fmtH(c.horas)} / ${fmtH(c.cap)}</span></div>
+        <div class="barra ${c.horas > c.cap ? 'excesso' : ''}"><i style="width:${pct}%"></i></div>
+        <div class="texto-carga">${c.horas > c.cap ? `Passa ${fmtH(c.horas - c.cap)} da capacidade.` : `Sobram ${fmtH(c.cap - c.horas)} em ${c.du} dias úteis.`}</div></div>`; }).join('')}
+        ${projs.map(p => { const f = faltaProjeto(p); return `<div class="texto-carga"><b style="color:var(--fg)">${esc(p.titulo)}:</b> faltam ${fmtH(f.horas)} de trabalho estimado e ${f.du} dias úteis até o prazo.</div>`; }).join('')}
+      </div></section>
+    <section class="painel"><h2>Projetos em andamento <button class="btn peq acao" data-acao="aba" data-aba="projetos">Ver todos</button></h2>
+      ${projs.length ? `<div class="carga">${projs.map(p => `<div class="carga-linha ${pcls(p.responsavel)}"><div class="carga-topo"><button class="link-tab" data-acao="aba" data-aba="projetos">${esc(p.titulo)}</button><span class="mono">${progresso(p)}%</span></div><div class="barra"><i style="width:${progresso(p)}%"></i></div><div class="texto-carga">${esc(curto(p.responsavel))} · prazo ${fmtD(p.prazo_final)}</div></div>`).join('')}</div>` : `<div class="vazio">Nenhum projeto ainda. Use "Importar plano" com o JSON que o Claude gerar.</div>`}
+    </section>
+    <section class="painel"><h2>Avisos <span class="tag">${av.length}</span></h2>
+      ${av.length ? av.slice(0, 6).map(linhaAviso).join('') : '<div class="vazio">Tudo em dia.</div>'}
+    </section>
+  </div>
+  <section class="painel" style="margin-top:16px"><h2>Atividade recente <button class="btn peq acao" data-acao="aba" data-aba="resumo">Ver resumo</button></h2>
+    ${listaHistorico(db.historico.slice(0, 8))}
+  </section>`;
+}
+function linhaAviso(a) {
+  return `<button class="alerta ${a.nivel}" data-acao="abrir-item" data-id="${esc(a.it.id)}"><i></i><span><span>${esc(a.it.titulo)}</span><small>${esc(a.txt)}${a.it.projeto ? ' · ' + esc(a.it.projeto.titulo) : ''}</small></span></button>`;
+}
+function listaHistorico(lst) {
+  if (!lst.length) return '<div class="vazio">Sem atividade registrada.</div>';
+  return `<div class="hist">${lst.map(h => `<div class="hist-l ${pcls(h.autor)}">${avatar(h.autor, true)}<div><span>${esc(h.texto)}</span><time>${quando(h.em)}</time></div></div>`).join('')}</div>`;
+}
+
+/* ---------- TAREFAS ---------- */
+function filtroPessoaHTML(ctx, atual) {
+  return `<div class="seg" role="group" aria-label="Filtrar por pessoa">
+    <button data-acao="filtro-pessoa" data-ctx="${ctx}" data-pessoa="todos" class="${atual === 'todos' ? 'ativo' : ''}">Todos</button>
+    ${NOMES.map(n => `<button data-acao="filtro-pessoa" data-ctx="${ctx}" data-pessoa="${esc(n)}" class="${pcls(n)} ${atual === n ? 'ativo' : ''}">${esc(curto(n))}</button>`).join('')}
+  </div>`;
+}
+function vTarefas() {
+  return `<div class="ferramentas">
+    ${filtroPessoaHTML('tarefas', ui.pessoa)}
+    <div class="seg" role="group" aria-label="Situação">${[['abertas', 'Em aberto'], ['concluidas', 'Concluídas'], ['todas', 'Todas']].map(([k, n]) => `<button data-acao="filtro-status" data-status="${k}" class="${ui.status === k ? 'ativo' : ''}">${n}</button>`).join('')}</div>
+    <label class="busca"><input type="search" id="busca" placeholder="Buscar tarefa ou projeto" value="${esc(ui.busca)}" aria-label="Buscar"></label>
+    <label style="display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" id="com-etapas" data-mudar="com-etapas" ${ui.comEtapas ? 'checked' : ''}> Incluir etapas de projetos</label>
+  </div>
+  <section class="painel" id="lista-tarefas">${listaTarefas()}</section>`;
+}
+function listaTarefas() {
+  const b = ui.busca.trim().toLowerCase();
+  let l = itens().filter(i => (ui.pessoa === 'todos' || i.responsavel === ui.pessoa) && (ui.comEtapas || i.tipo === 'tarefa'));
+  if (ui.status === 'abertas') l = l.filter(aberto); else if (ui.status === 'concluidas') l = l.filter(i => !aberto(i));
+  if (b) l = l.filter(i => (i.titulo + ' ' + (i.obj.descricao || '') + ' ' + (i.projeto?.titulo || '')).toLowerCase().includes(b));
+  if (!l.length) return `<div class="vazio">Nenhuma tarefa aqui. ${ui.status !== 'todas' ? 'Experimente o filtro "Todas".' : 'Crie a primeira em "Nova tarefa".'}</div>`;
+  const h = hoje(), sem = addD(h, 7);
+  const grupos = [
+    ['Atrasadas', l.filter(atrasado), 'danger'],
+    ['Hoje', l.filter(i => aberto(i) && i.prazo === h)],
+    ['Próximos 7 dias', l.filter(i => aberto(i) && i.prazo > h && i.prazo <= sem)],
+    ['Mais adiante', l.filter(i => aberto(i) && i.prazo > sem)],
+    ['Sem prazo', l.filter(i => aberto(i) && !i.prazo)],
+    ['Concluídas', l.filter(i => !aberto(i)).sort((a, b) => (b.concluida_em || '').localeCompare(a.concluida_em || ''))]
+  ];
+  return grupos.filter(g => g[1].length).map(([t, arr, c]) => `<div class="grupo-titulo"><span class="rotulo ${c || ''}">${t}</span><span class="mono faint">${arr.length}</span></div>
+    <div class="lista">${(t === 'Concluídas' ? arr : arr.sort(ordemPrazo)).map(linhaItem).join('')}</div>`).join('');
+}
+
+/* ---------- PROJETOS ---------- */
+function vProjetos() {
+  const topo = `<div class="ferramentas"><button class="btn prim" data-acao="importar-plano">Importar plano (JSON)</button><button class="btn" data-acao="copiar-modelo">Copiar modelo para o Claude</button><span class="muted" style="font-size:13px">Peça o plano ao Claude com o modelo, cole o JSON em "Importar plano" e as etapas entram com o responsável certo.</span></div>`;
+  if (!db.projetos.length) return topo + `<section class="painel"><div class="vazio">Nenhum projeto ainda.</div></section>`;
+  return topo + `<div class="projetos">${db.projetos.map(p => {
+    const pr = progresso(p), f = faltaProjeto(p), conc = p.etapas.filter(e => e.status === 'concluida').length;
+    return `<section class="painel ${pcls(p.responsavel)}">
+      <div class="projeto-cab"><div style="min-width:0;flex:1">
+        <h3>${esc(p.titulo)} ${p.exemplo ? '<span class="tag ex">Exemplo</span>' : ''}</h3><p>${esc(p.descricao)}</p></div>
+        <div class="projeto-num"><b>${pr}%</b><div class="texto-carga">${conc} de ${p.etapas.length} etapas</div></div>
+      </div>
+      <div class="barra" style="margin-top:12px"><i style="width:${pr}%"></i></div>
+      <div class="projeto-meta">
+        <span>Responsável <b>${esc(p.responsavel)}</b></span><span>Prioridade <b>${PRIOR[p.prioridade] || p.prioridade}</b></span>
+        <span>Início <b class="mono">${p.data_inicio ? fmtD(p.data_inicio) : '—'}</b></span><span>Prazo final <b class="mono">${fmtD(p.prazo_final)}</b></span>
+        <span>Faltam <b>${fmtH(f.horas)}</b> de trabalho e <b>${f.du}</b> dias úteis</span><span class="mono faint">id: ${esc(p.id)}</span>
+      </div>
+      <div class="tabela-wrap"><table>
+        <thead><tr><th>Etapa</th><th>Título</th><th>Responsável</th><th>Horas</th><th>Início</th><th>Prazo</th><th>Status</th></tr></thead>
+        <tbody>${p.etapas.map(e => { const it = { ...e, prazo: e.prazo, status: e.status, concluida_em: e.concluida_em }; const pi = prazoInfo(it);
+          return `<tr><td class="n">${esc(e.id)}</td><td><button class="link-tab" data-acao="abrir-item" data-id="${esc(p.id + '/' + e.id)}">${esc(e.titulo)}</button>${(e.registros || []).length ? ` <span class="tag">${e.registros.length}</span>` : ''}</td>
+          <td class="${pcls(e.responsavel)}" style="white-space:nowrap">${avatar(e.responsavel, true)} ${esc(curto(e.responsavel))}</td><td class="n">${fmtH(+e.horas_estimadas || 0)}</td>
+          <td class="n">${e.data_inicio ? fmtD(e.data_inicio) : '—'}</td><td class="n"><span class="prazo ${pi.cls}">${e.status === 'concluida' ? fmtD(e.prazo) : pi.txt}</span></td>
+          <td><select data-mudar="status" data-id="${esc(p.id + '/' + e.id)}" aria-label="Status de ${esc(e.titulo)}">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${e.status === k ? 'selected' : ''}>${v}</option>`).join('')}</select></td></tr>`; }).join('')}</tbody>
+      </table></div>
+      <div class="ferramentas" style="margin:14px 0 0">
+        <button class="btn peq" data-acao="exportar-plano" data-pid="${esc(p.id)}">Exportar plano (JSON)</button>
+        <button class="btn peq perigo" data-acao="excluir-projeto" data-pid="${esc(p.id)}">Excluir projeto</button>
+      </div>
+    </section>`; }).join('')}</div>`;
+}
+
+/* ---------- CALENDÁRIO ---------- */
+function eventosDia(dia) {
+  return itens().filter(i => i.prazo === dia && (ui.calPessoa === 'todos' || i.responsavel === ui.calPessoa))
+    .sort((a, b) => (a.status === 'concluida') - (b.status === 'concluida') || a.responsavel.localeCompare(b.responsavel));
+}
+function chipEv(i, semana) {
+  return `<button class="cal-ev ${pcls(i.responsavel)} ${i.status === 'concluida' ? 'feito' : ''} ${atrasado(i) ? 'atrasado' : ''}" data-acao="abrir-item" data-id="${esc(i.id)}" title="${esc(i.titulo)} · ${esc(curto(i.responsavel))}">${esc(i.titulo)}${semana ? `<small>${esc(curto(i.responsavel))}${i.projeto ? ' · ' + esc(i.obj.id) : ''}${i.horas ? ' · ' + fmtH(i.horas) : ''}</small>` : ''}</button>`;
+}
+function vCalendario() {
+  const ref = ui.calRef, mes = ui.calModo === 'mes';
+  let ini, n, rotulo;
+  if (mes) { const p = pd(ref); const prim = ymd(new Date(p.getFullYear(), p.getMonth(), 1)); ini = inicioSemana(prim); n = 42; rotulo = fmtMes(prim); }
+  else { ini = inicioSemana(ref); n = 7; rotulo = `${fmtD(ini)} a ${fmtD(addD(ini, 6))}`; }
+  const mesAtual = pd(ref).getMonth();
+  let cel = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(d => `<div class="cal-dow">${d}</div>`).join('');
+  for (let k = 0; k < n; k++) {
+    const dia = addD(ini, k), d = pd(dia), evs = eventosDia(dia), lim = mes ? 3 : 99;
+    const cls = [(mes && d.getMonth() !== mesAtual) ? 'fora' : '', dia === hoje() ? 'hoje' : '', (d.getDay() % 6 === 0) ? 'fds' : ''].join(' ');
+    cel += `<div class="cal-dia ${cls}" data-acao="nova-tarefa" data-prazo="${dia}" title="Clique para criar uma tarefa com prazo em ${fmtD(dia)}">
+      <span class="cal-n">${mes ? d.getDate() : DIAS[d.getDay()] + ' ' + fmtD(dia)}</span>
+      ${evs.slice(0, lim).map(i => chipEv(i, !mes)).join('')}${evs.length > lim ? `<span class="cal-mais">+${evs.length - lim} mais</span>` : ''}
+    </div>`;
+  }
+  return `<div class="cal-cab">
+    <button class="btn peq" data-acao="cal-nav" data-dir="-1" aria-label="Anterior">‹</button>
+    <button class="btn peq" data-acao="cal-hoje">Hoje</button>
+    <button class="btn peq" data-acao="cal-nav" data-dir="1" aria-label="Próximo">›</button>
+    <h2>${esc(rotulo)}</h2>
+    <div class="seg"><button data-acao="cal-modo" data-modo="mes" class="${mes ? 'ativo' : ''}">Mês</button><button data-acao="cal-modo" data-modo="semana" class="${!mes ? 'ativo' : ''}">Semana</button></div>
+    ${filtroPessoaHTML('cal', ui.calPessoa)}
+    <div class="legenda" style="margin-left:auto">${NOMES.map(n => `<span class="${pcls(n)}"><i></i>${esc(curto(n))}</span>`).join('')}<span><i style="background:none;box-shadow:inset 0 0 0 1px var(--danger)"></i>Atrasada</span></div>
+  </div>
+  <div class="cal-wrap"><div class="cal ${mes ? '' : 'semana'}">${cel}</div></div>
+  <p class="muted" style="font-size:12px;margin-top:10px">Cada tarefa e etapa aparece no dia do prazo. Clique num dia vazio para criar uma tarefa com aquele prazo.</p>`;
+}
+
+/* ---------- RESUMO (diário e semanal) ---------- */
+function concluidasEntre(p, a, b) { return itens().filter(i => i.responsavel === p && i.status === 'concluida' && i.concluida_em && diaDe(i.concluida_em) >= a && diaDe(i.concluida_em) <= b); }
+function grafico(rotulos, series, opts = {}) {
+  const W = 640, H = 220, L = 30, R = 8, T = 18, B = 34;
+  const max = Math.max(1, ...Object.values(series).flat());
+  const passo = max <= 5 ? 1 : Math.ceil(max / 5);
+  const topo = Math.ceil(max / passo) * passo;
+  const y = v => T + (H - T - B) * (1 - v / topo);
+  const gw = (W - L - R) / rotulos.length, nomes = Object.keys(series), bw = Math.min(18, (gw - 10) / nomes.length);
+  let s = `<svg class="grafico" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.titulo || 'Gráfico')}">`;
+  for (let v = 0; v <= topo; v += passo) s += `<line class="eixo" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke-dasharray="${v ? '2 4' : ''}"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+  rotulos.forEach((r, k) => {
+    const cx = L + gw * k + gw / 2, x0 = cx - (bw * nomes.length) / 2;
+    nomes.forEach((n, j) => { const v = series[n][k]; if (v > 0) { const yy = y(v); s += `<rect class="b-${pcls(n).slice(2)}" x="${x0 + j * bw + 1}" y="${yy}" width="${bw - 2}" height="${y(0) - yy}" rx="2"><title>${esc(curto(n))}: ${v}</title></rect>`; if (opts.valores) s += `<text class="val" x="${x0 + j * bw + bw / 2}" y="${yy - 4}" text-anchor="middle">${v}</text>`; } });
+    const [l1, l2] = String(r).split('|');
+    s += `<text x="${cx}" y="${H - B + 15}" text-anchor="middle" ${opts.destaque === k ? 'style="fill:var(--fg);font-weight:600"' : ''}>${esc(l1)}</text>`;
+    if (l2) s += `<text x="${cx}" y="${H - B + 28}" text-anchor="middle">${esc(l2)}</text>`;
+  });
+  return s + '</svg>';
+}
+function vResumo() {
+  const semana = ui.resumoModo === 'semana';
+  const nav = `<div class="cal-cab">
+    <div class="seg"><button data-acao="resumo-modo" data-modo="dia" class="${!semana ? 'ativo' : ''}">Diário</button><button data-acao="resumo-modo" data-modo="semana" class="${semana ? 'ativo' : ''}">Semanal</button></div>
+    <button class="btn peq" data-acao="resumo-nav" data-dir="-1" aria-label="Anterior">‹</button>
+    <button class="btn peq" data-acao="resumo-hoje">Hoje</button>
+    <button class="btn peq" data-acao="resumo-nav" data-dir="1" aria-label="Próximo">›</button>
+    <h2 style="text-transform:none">${semana ? `${fmtD(addD(ui.resumoRef, -6))} a ${fmtD(ui.resumoRef)}` : esc(fmtLongo(ui.resumoRef))}</h2>
+    <button class="btn peq" data-acao="copiar-resumo" style="margin-left:auto">Copiar resumo em texto</button>
+  </div>`;
+  return nav + (semana ? resumoSemana() : resumoDia());
+}
+function dadosSemana() {
+  const fim = ui.resumoRef, ini = addD(fim, -6);
+  const dias = Array.from({ length: 7 }, (_, k) => addD(ini, k));
+  const por = {};
+  NOMES.forEach(p => {
+    const c = concluidasEntre(p, ini, fim);
+    const porDia = dias.map(d => c.filter(i => diaDe(i.concluida_em) === d).length);
+    const horasDia = dias.map(d => c.filter(i => diaDe(i.concluida_em) === d).reduce((s, i) => s + i.horas, 0));
+    const noPrazo = c.filter(i => !i.prazo || diaDe(i.concluida_em) <= i.prazo).length;
+    const max = Math.max(...porDia), pico = max ? dias[porDia.indexOf(max)] : null;
+    const atividade = db.historico.filter(h => h.autor === p && diaDe(h.em) >= ini && diaDe(h.em) <= fim).length;
+    const criouOutro = db.tarefas.filter(t => t.criado_por === p && t.responsavel !== p && t.criado_em && diaDe(t.criado_em) >= ini && diaDe(t.criado_em) <= fim).length;
+    const atrasadas = itens().filter(i => i.responsavel === p && atrasado(i)).length;
+    const abertas = itens().filter(i => i.responsavel === p && aberto(i)).length;
+    por[p] = { c, porDia, horasDia, horas: c.reduce((s, i) => s + i.horas, 0), noPrazo, pico, atividade, criouOutro, atrasadas, abertas };
+  });
+  return { ini, fim, dias, por };
+}
+function resumoSemana() {
+  const S = dadosSemana();
+  const rot = S.dias.map(d => DIAS[pd(d).getDay()] + '|' + fmtD(d));
+  const series = {}; NOMES.forEach(p => series[p] = S.por[p].porDia);
+  const seriesH = {}; NOMES.forEach(p => seriesH[p] = S.por[p].horasDia.map(h => Math.round(h * 10) / 10));
+  const hojeIdx = S.dias.indexOf(hoje());
+  const cartao = p => { const d = S.por[p], tx = d.c.length ? Math.round(100 * d.noPrazo / d.c.length) : null;
+    return `<section class="painel pessoa-resumo ${pcls(p)}"><h2>${avatar(p)} ${esc(p)}</h2><div class="kv">
+      <div><b>${d.c.length}</b><span>itens concluídos</span></div><div><b>${fmtH(d.horas)}</b><span>horas entregues (estimadas)</span></div>
+      <div><b>${tx === null ? '—' : tx + '%'}</b><span>concluídos dentro do prazo</span></div><div><b>${d.pico ? DIAS[pd(d.pico).getDay()] + ' ' + fmtD(d.pico) : '—'}</b><span>dia de pico</span></div>
+      <div><b>${d.atividade}</b><span>ações registradas no app</span></div><div><b style="color:${d.atrasadas ? 'var(--danger)' : 'inherit'}">${d.atrasadas}</b><span>atrasadas agora · ${d.abertas} em aberto</span></div>
+    </div></section>`; };
+  const listaDias = S.dias.slice().reverse().map(d => { const l = NOMES.flatMap(p => S.por[p].c.filter(i => diaDe(i.concluida_em) === d)); if (!l.length) return '';
+    return `<div class="dia-bloco"><span class="rotulo">${DIAS[pd(d).getDay()]} ${fmtD(d)}</span><div>${l.map(i => `<div class="feito-linha ${pcls(i.responsavel)}">${avatar(i.responsavel, true)}<span>${esc(i.titulo)}${i.projeto ? ` <span class="faint">· ${esc(i.projeto.titulo)}</span>` : ''}</span></div>`).join('')}</div></div>`; }).join('');
+  return `<div class="grade g2">${NOMES.map(cartao).join('')}</div>
+  <div class="grade g2" style="margin-top:16px">
+    <section class="painel"><h2>Itens concluídos por dia</h2>${grafico(rot, series, { valores: true, destaque: hojeIdx, titulo: 'Itens concluídos por dia' })}<div class="legenda">${NOMES.map(n => `<span class="${pcls(n)}"><i></i>${esc(curto(n))}</span>`).join('')}</div></section>
+    <section class="painel"><h2>Horas entregues por dia</h2>${grafico(rot, seriesH, { valores: true, destaque: hojeIdx, titulo: 'Horas estimadas entregues por dia' })}<div class="legenda">${NOMES.map(n => `<span class="${pcls(n)}"><i></i>${esc(curto(n))}</span>`).join('')}</div></section>
+  </div>
+  <section class="painel" style="margin-top:16px"><h2>O que foi entregue</h2>${listaDias || '<div class="vazio">Nada concluído nesse período.</div>'}</section>`;
+}
+function resumoDia() {
+  const d = ui.resumoRef, horas = Array.from({ length: 17 }, (_, k) => k + 6);
+  const series = {};
+  NOMES.forEach(p => { series[p] = horas.map(h => db.historico.filter(x => x.autor === p && diaDe(x.em) === d && new Date(x.em).getHours() === h).length); });
+  const rot = horas.map(h => h + 'h');
+  const col = p => {
+    const conc = concluidasEntre(p, d, d), and = itens().filter(i => i.responsavel === p && i.status === 'em_andamento');
+    const regs = itens().flatMap(i => (i.obj.registros || []).filter(r => r.autor === p && diaDe(r.em) === d).map(r => ({ r, i })));
+    const s = series[p], max = Math.max(...s), pico = max ? horas[s.indexOf(max)] : null;
+    return `<section class="painel pessoa-resumo ${pcls(p)}"><h2>${avatar(p)} ${esc(p)}</h2>
+      <div class="kv" style="margin-bottom:14px"><div><b>${conc.length}</b><span>concluídos no dia</span></div><div><b>${pico === null ? '—' : pico + 'h'}</b><span>horário de pico</span></div></div>
+      <div class="rotulo">Concluiu</div>${conc.length ? conc.map(i => `<div class="feito-linha">✓ <span>${esc(i.titulo)}</span></div>`).join('') : '<div class="vazio">Nada concluído.</div>'}
+      <div class="rotulo" style="margin-top:10px">Em andamento</div>${and.length ? and.map(i => `<div class="feito-linha">· <span>${esc(i.titulo)}</span></div>`).join('') : '<div class="vazio">Nada em andamento.</div>'}
+      <div class="rotulo" style="margin-top:10px">Registros (links, prints, notas)</div>${regs.length ? regs.map(({ r, i }) => `<div class="feito-linha">${TIPOS_REG[r.tipo] || 'Nota'}: <span>${esc(r.texto || r.url || 'imagem')} <span class="faint">em ${esc(i.titulo)}</span></span></div>`).join('') : '<div class="vazio">Nenhum registro.</div>'}
+    </section>`;
+  };
+  const hist = db.historico.filter(h => diaDe(h.em) === d);
+  return `<div class="grade g2">${NOMES.map(col).join('')}</div>
+  <section class="painel" style="margin-top:16px"><h2>Atividade ao longo do dia</h2>${grafico(rot, series, { titulo: 'Ações por hora' })}<div class="legenda">${NOMES.map(n => `<span class="${pcls(n)}"><i></i>${esc(curto(n))}</span>`).join('')}<span>Conta cada ação feita no app (criar, concluir, registrar).</span></div></section>
+  <section class="painel" style="margin-top:16px"><h2>Histórico do dia</h2>${listaHistorico(hist)}</section>`;
+}
+function textoResumo() {
+  if (ui.resumoModo === 'semana') {
+    const S = dadosSemana();
+    let t = `Resumo semanal CSL · ${fmtD(S.ini)} a ${fmtD(S.fim)}\n`;
+    NOMES.forEach(p => { const d = S.por[p]; t += `\n${p}: ${d.c.length} itens concluídos (${fmtH(d.horas)} estimadas), ${d.atrasadas} atrasados agora, ${d.abertas} em aberto.${d.pico ? ' Pico: ' + DIAS[pd(d.pico).getDay()] + ' ' + fmtD(d.pico) + '.' : ''}\n` + d.c.map(i => `  ✓ ${i.titulo}`).join('\n') + (d.c.length ? '\n' : ''); });
+    return t;
+  }
+  const d = ui.resumoRef; let t = `Resumo do dia ${fmtD(d)} · CSL\n`;
+  NOMES.forEach(p => { const c = concluidasEntre(p, d, d), a = itens().filter(i => i.responsavel === p && i.status === 'em_andamento');
+    t += `\n${p}\n  Concluiu: ${c.length ? c.map(i => i.titulo).join('; ') : 'nada'}\n  Em andamento: ${a.length ? a.map(i => i.titulo).join('; ') : 'nada'}\n`; });
+  return t;
+}
+
+/* ---------- MODAIS ---------- */
+function abrirModal(html, tipo = {}) {
+  const jaAberto = !!$('#modal-raiz .fundo');
+  modalAtual = tipo;
+  $('#modal-raiz').innerHTML = `<div class="fundo ${jaAberto ? 'fixo' : ''}" data-acao="fundo"><div class="modal ${tipo.classe || ''}" role="dialog" aria-modal="true">${html}</div></div>`;
+  const f = $('#modal-raiz [autofocus]'); if (f) f.focus();
+  resolverPrints();
+}
+function resolverPrints() {
+  if (!Nuvem) return;
+  document.querySelectorAll('img[data-print]:not([src])').forEach(async img => {
+    try { img.src = await Nuvem.urlImagem(img.dataset.print); } catch (e) { img.alt = 'Não consegui carregar o print.'; }
+  });
+}
+function fecharModal() { $('#modal-raiz').innerHTML = ''; modalAtual = null; imagemPendente = null; }
+function atualizarModal() { if (modalAtual?.tipo === 'item') { if (acharItem(modalAtual.id)) modalItem(modalAtual.id, true); else fecharModal(); } }
+const cab = t => `<div class="modal-cab"><h2>${t}</h2><button class="fechar" data-acao="fechar" aria-label="Fechar">×</button></div>`;
+
+function modalItem(id, manterRascunho) {
+  const it = acharItem(id); if (!it) return;
+  const o = it.obj, rasc = manterRascunho ? { tipo: $('#reg-tipo')?.value, texto: $('#reg-texto')?.value, url: $('#reg-url')?.value } : {};
+  const deps = it.projeto && o.depende_de?.length ? o.depende_de.map(d => { const e = it.projeto.etapas.find(x => x.id === d); return e ? `${d} ${e.titulo} (${STATUS[e.status]})` : d; }).join(' · ') : '';
+  const regs = (o.registros || []).slice().sort((a, b) => b.em.localeCompare(a.em));
+  abrirModal(`${cab(esc(it.titulo))}
+  <div class="modal-corpo">
+    <div class="muted" style="font-size:13px;margin-top:-6px">${it.tipo === 'etapa' ? `Etapa ${esc(o.id)} do projeto <b style="color:var(--fg)">${esc(it.projeto.titulo)}</b>` : 'Tarefa avulsa'}${it.exemplo ? ' · <span class="tag ex">Exemplo</span>' : ''}</div>
+    <div class="status-btns" role="group" aria-label="Status">${Object.entries(STATUS).map(([k, v]) => `<button data-acao="status" data-id="${esc(id)}" data-status="${k}" class="${it.status === k ? 'ativo' : ''}">${v}</button>`).join('')}</div>
+    <div class="meta-grade">
+      <div class="${pcls(it.responsavel)}"><span>Responsável</span>${avatar(it.responsavel, true)} ${esc(it.responsavel)}</div>
+      ${it.criado_por ? `<div><span>Criada por</span>${esc(curto(it.criado_por))}</div>` : ''}
+      <div><span>Prioridade</span>${PRIOR[it.prioridade] || '—'}</div>
+      <div><span>Início</span><span class="mono">${it.inicio ? fmtD(it.inicio) : '—'}</span></div>
+      <div><span>Prazo</span><span class="prazo ${prazoInfo(it).cls}" style="display:inline-block">${it.prazo ? fmtD(it.prazo) + ' · ' + prazoInfo(it).txt : 'Sem prazo'}</span></div>
+      <div><span>Horas estimadas</span>${it.horas ? fmtH(it.horas) : '—'}</div>
+      ${o.concluida_em ? `<div><span>Concluída</span>${quando(o.concluida_em)}${o.concluida_por ? ' por ' + esc(curto(o.concluida_por)) : ''}</div>` : ''}
+    </div>
+    ${o.descricao ? `<div><div class="rotulo">Descrição</div><p class="descricao">${esc(o.descricao)}</p></div>` : ''}
+    ${deps ? `<div><div class="rotulo">Depende de</div><p class="descricao">${esc(deps)}</p></div>` : ''}
+    ${o.observacoes ? `<div><div class="rotulo">Observações do plano</div><p class="descricao">${esc(o.observacoes)}</p></div>` : ''}
+    ${(o.links || []).length ? `<div><div class="rotulo">Links do plano</div>${o.links.map(l => `<div><a href="${esc(l)}" target="_blank" rel="noopener">${esc(l)}</a></div>`).join('')}</div>` : ''}
+    <div>
+      <div class="rotulo" style="margin-bottom:8px">Registros · links, prints, notas e resumos</div>
+      <div class="registros">${regs.length ? regs.map(r => `<div class="registro ${pcls(r.autor)}">
+        <div class="registro-cab"><span class="tipo">${TIPOS_REG[r.tipo] || 'Nota'}</span><b>${esc(curto(r.autor))}</b><span>${quando(r.em)}</span>${r.autor === eu ? `<button data-acao="remover-registro" data-id="${esc(id)}" data-rid="${esc(r.id)}">Apagar</button>` : ''}</div>
+        ${r.texto ? `<p>${esc(r.texto)}</p>` : ''}${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a>` : ''}${r.imagem ? `<img src="${r.imagem}" alt="Print anexado por ${esc(curto(r.autor))}" data-acao="ver-imagem">` : r.print ? `<img data-print="${esc(r.print)}" alt="Print anexado por ${esc(curto(r.autor))}" data-acao="ver-imagem">` : ''}
+      </div>`).join('') : '<div class="vazio" style="padding:4px 0">Nenhum registro ainda. Use o campo abaixo para guardar o que foi feito.</div>'}</div>
+    </div>
+    <form class="form-registro" data-form="registro" data-id="${esc(id)}">
+      <div class="linha-campos">
+        <label class="campo">Tipo<select id="reg-tipo">${Object.entries(TIPOS_REG).map(([k, v]) => `<option value="${k}" ${rasc.tipo === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+        <label class="campo" style="grid-column:span 2">Link (opcional)<input type="url" id="reg-url" placeholder="https://" value="${esc(rasc.url || '')}"></label>
+      </div>
+      <label class="campo">Texto<textarea id="reg-texto" placeholder="O que foi feito, decisões, resumo... Dá para colar um print aqui (Ctrl+V).">${esc(rasc.texto || '')}</textarea></label>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <label class="btn peq" style="cursor:pointer">Anexar print<input type="file" id="reg-img" accept="image/*" hidden></label>
+        <span id="reg-previa">${imagemPendente ? `<img class="previa-img" src="${imagemPendente}" alt="Prévia do print">` : ''}</span>
+        <button class="btn prim peq" type="submit" style="margin-left:auto">Adicionar registro</button>
+      </div>
+    </form>
+  </div>
+  <div class="modal-pe">
+    ${it.tipo === 'tarefa' ? `<button class="btn perigo" data-acao="excluir-tarefa" data-id="${esc(id)}">Excluir tarefa</button>` : ''}
+    <button class="btn" data-acao="editar-item" data-id="${esc(id)}">Editar</button>
+    <button class="btn prim" data-acao="fechar">Fechar</button>
+  </div>`, { tipo: 'item', id, classe: 'lado' });
+}
+
+function modalForm(opts = {}) {
+  const it = opts.id ? acharItem(opts.id) : null, o = it?.obj || {};
+  const resp = o.responsavel || opts.resp || eu;
+  abrirModal(`${cab(it ? 'Editar ' + (it.tipo === 'etapa' ? 'etapa' : 'tarefa') : 'Nova tarefa')}
+  <form data-form="tarefa" data-id="${esc(opts.id || '')}">
+  <div class="modal-corpo">
+    <label class="campo">Título<input type="text" id="f-titulo" required value="${esc(o.titulo || '')}" placeholder="Ex.: Criar o site da CSL" autofocus></label>
+    <div><div class="rotulo" style="margin-bottom:6px">Responsável</div><div class="escolha-pessoa">${NOMES.map(n => `<label class="${pcls(n)}"><input type="radio" name="f-resp" value="${esc(n)}" ${resp === n ? 'checked' : ''}><span>${avatar(n, true)}${esc(n)}${n === eu ? ' (eu)' : ''}</span></label>`).join('')}</div></div>
+    <label class="campo">Descrição<textarea id="f-desc" placeholder="O que precisa ser feito, critérios de pronto, contexto">${esc(o.descricao || '')}</textarea></label>
+    <div class="linha-campos">
+      <label class="campo">Início<input type="date" id="f-inicio" value="${esc(o.data_inicio || (it ? '' : hoje()))}"></label>
+      <label class="campo">Prazo<input type="date" id="f-prazo" value="${esc(o.prazo || opts.prazo || '')}"></label>
+      <label class="campo">Horas estimadas<input type="number" id="f-horas" min="0" step="0.5" value="${esc(o.horas_estimadas ?? '')}" placeholder="Ex.: 3"></label>
+      ${it?.tipo === 'etapa' ? '' : `<label class="campo">Prioridade<select id="f-prior">${Object.entries(PRIOR).map(([k, v]) => `<option value="${k}" ${(o.prioridade || 'media') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>`}
+    </div>
+    <div id="f-erro"></div>
+  </div>
+  <div class="modal-pe"><button type="button" class="btn" data-acao="fechar">Cancelar</button><button class="btn prim" type="submit">${it ? 'Salvar' : 'Criar tarefa'}</button></div>
+  </form>`, { tipo: 'form' });
+}
+
+/* ---------- importar / exportar plano ---------- */
+const MODELO_FORMATO = () => JSON.stringify({
+  tipo: 'plano_projeto', versao_formato: '1.0',
+  projeto: { id: 'site-csl-consultoria', titulo: 'Criação do site da CSL Consultoria', descricao: 'Site institucional com páginas de serviços e contato', responsavel: 'Ricardo Romão', prioridade: 'alta', data_inicio: '2026-10-13', prazo_final: '2026-11-30' },
+  etapas: [{ id: 'E01', titulo: 'Definir estrutura e páginas do site', descricao: 'Listar páginas, textos e referências visuais', responsavel: 'Ricardo Romão', horas_estimadas: 3, data_inicio: '2026-10-13', prazo: '2026-10-15', depende_de: [], status: 'pendente', links: [], observacoes: '' }],
+  atualizado_em: '2026-10-12T15:30:00-03:00'
+}, null, 2);
+function textoModelo() {
+  return `Preciso planejar a seguinte atividade da CSL Consultoria: [DESCREVA A ATIVIDADE].
+Responsável: ${eu}. Prazo final: [DATA].
+Tenho cerca de [X] horas por semana para isso.
+
+Monte o passo a passo dividido em etapas e me devolva SOMENTE no formato
+JSON abaixo, preenchido, para eu importar no nosso app de gestão. Estime as
+horas de cada etapa de forma realista e distribua as datas até o prazo final.
+
+Regras do formato:
+- "responsavel": Legat | Ricardo Romão
+- "status": pendente | em_andamento | concluida | bloqueada
+- "prioridade": baixa | media | alta
+- Datas no formato AAAA-MM-DD.
+- "id" do projeto em minúsculas e com hífens; nunca muda.
+- "id" das etapas sequencial (E01, E02...) e nunca reaproveitado.
+
+${MODELO_FORMATO()}
+
+Quando eu disser "atualize o plano", me devolva o mesmo JSON com o mesmo
+"id" do projeto, atualizando status, datas e observações conforme o que eu
+te contar.`;
+}
+function normResp(v) { const s = String(v || '').trim(); if (/^ricardo/i.test(s)) return 'Ricardo Romão'; if (/^legat/i.test(s)) return 'Legat'; return s; }
+function validarPlano(txt) {
+  const erros = [];
+  let j; try { j = JSON.parse(txt); } catch (e) { return { erros: ['O texto não é um JSON válido. Confira se copiou tudo, do primeiro { ao último }. Detalhe: ' + e.message] }; }
+  if (j.tipo !== 'plano_projeto') erros.push('"tipo" deve ser "plano_projeto".');
+  const p = j.projeto;
+  if (!p || typeof p !== 'object') { erros.push('Falta o bloco "projeto".'); return { erros }; }
+  if (!p.id || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(p.id)) erros.push('projeto.id deve estar em minúsculas e com hífens (ex.: site-csl-consultoria).');
+  if (!p.titulo) erros.push('projeto.titulo está vazio.');
+  if (!PESSOAS[normResp(p.responsavel)]) erros.push(`projeto.responsavel deve ser "Legat" ou "Ricardo Romão" (veio "${p.responsavel ?? ''}").`);
+  if (!PRIOR[p.prioridade]) erros.push('projeto.prioridade deve ser baixa, media ou alta.');
+  if (p.data_inicio && !ehData(p.data_inicio)) erros.push('projeto.data_inicio deve estar no formato AAAA-MM-DD.');
+  if (!ehData(p.prazo_final)) erros.push('projeto.prazo_final deve estar no formato AAAA-MM-DD.');
+  if (!Array.isArray(j.etapas) || !j.etapas.length) { erros.push('A lista "etapas" está vazia ou não existe.'); return { erros }; }
+  const ids = new Set();
+  j.etapas.forEach((e, k) => {
+    const pre = `Etapa ${k + 1}${e?.id ? ' (' + e.id + ')' : ''}:`;
+    if (!e || typeof e !== 'object') { erros.push(pre + ' formato inválido.'); return; }
+    if (!/^E\d{2,}$/.test(e.id || '')) erros.push(pre + ' "id" deve ser E01, E02...');
+    if (ids.has(e.id)) erros.push(pre + ' "id" repetido.'); ids.add(e.id);
+    if (!e.titulo) erros.push(pre + ' "titulo" está vazio.');
+    if (!PESSOAS[normResp(e.responsavel)]) erros.push(pre + ` "responsavel" deve ser Legat ou Ricardo Romão (veio "${e.responsavel ?? ''}").`);
+    if (e.horas_estimadas !== undefined && (typeof e.horas_estimadas !== 'number' || e.horas_estimadas < 0)) erros.push(pre + ' "horas_estimadas" deve ser um número.');
+    if (e.data_inicio && !ehData(e.data_inicio)) erros.push(pre + ' "data_inicio" deve ser AAAA-MM-DD.');
+    if (!ehData(e.prazo)) erros.push(pre + ' "prazo" deve ser AAAA-MM-DD.');
+    if (!STATUS[e.status]) erros.push(pre + ' "status" deve ser pendente, em_andamento, concluida ou bloqueada.');
+    if (e.depende_de !== undefined && !Array.isArray(e.depende_de)) erros.push(pre + ' "depende_de" deve ser uma lista, ex.: ["E01"].');
+  });
+  const existentes = new Set((db.projetos.find(x => x.id === p.id)?.etapas || []).map(e => e.id));
+  j.etapas.forEach(e => (e.depende_de || []).forEach(d => { if (!ids.has(d) && !existentes.has(d)) erros.push(`Etapa ${e.id}: depende de "${d}", que não existe no plano.`); }));
+  return { erros, plano: j };
+}
+const CAMPOS_ETAPA = { titulo: 'título', descricao: 'descrição', responsavel: 'responsável', horas_estimadas: 'horas', data_inicio: 'início', prazo: 'prazo', status: 'status', observacoes: 'observações' };
+function diffPlano(j) {
+  const atual = db.projetos.find(p => p.id === j.projeto.id);
+  if (!atual) return { novo: true, linhas: [`Projeto novo: <b>${esc(j.projeto.titulo)}</b> com ${j.etapas.length} etapas (${j.etapas.filter(e => normResp(e.responsavel) === 'Legat').length} do Legat, ${j.etapas.filter(e => normResp(e.responsavel) === 'Ricardo Romão').length} do Ricardo).`] };
+  const linhas = [];
+  ['titulo', 'descricao', 'responsavel', 'prioridade', 'data_inicio', 'prazo_final'].forEach(c => { const v = c === 'responsavel' ? normResp(j.projeto[c]) : j.projeto[c]; if (v !== undefined && v !== atual[c]) linhas.push(`<span class="alt">Projeto</span>: ${c.replace('_', ' ')} de "${esc(atual[c])}" para "${esc(v)}"`); });
+  j.etapas.forEach(e => {
+    const a = atual.etapas.find(x => x.id === e.id);
+    if (!a) { linhas.push(`<span class="novo">Nova etapa</span> ${esc(e.id)}: ${esc(e.titulo)} (${esc(curto(normResp(e.responsavel)))}, prazo ${fmtD(e.prazo)})`); return; }
+    const m = [];
+    Object.keys(CAMPOS_ETAPA).forEach(c => { let v = e[c]; if (c === 'responsavel') v = normResp(v); if (v === undefined) return; if (String(v) !== String(a[c] ?? '')) m.push(c === 'status' ? `status ${STATUS[a.status]} → ${STATUS[v]}` : c === 'prazo' || c === 'data_inicio' ? `${CAMPOS_ETAPA[c]} ${a[c] ? fmtD(a[c]) : '—'} → ${fmtD(v)}` : CAMPOS_ETAPA[c]); });
+    if (m.length) linhas.push(`<span class="alt">${esc(e.id)}</span> ${esc(e.titulo)}: ${esc(m.join(', '))}`);
+  });
+  atual.etapas.filter(a => !j.etapas.some(e => e.id === a.id)).forEach(a => linhas.push(`${esc(a.id)} ${esc(a.titulo)} não veio no JSON e será mantida como está.`));
+  if (!linhas.length) linhas.push('Nada mudou em relação ao que já está no app.');
+  return { novo: false, linhas };
+}
+function aplicarPlano(j) {
+  const P = j.projeto; let atual = db.projetos.find(p => p.id === P.id);
+  const novo = !atual;
+  let nNovas = 0, nAlt = 0;
+  mudar(() => {
+    if (!atual) { atual = { id: P.id, etapas: [], criado_por: eu, criado_em: agora() }; db.projetos.push(atual); }
+    Object.assign(atual, { titulo: P.titulo, descricao: P.descricao || '', responsavel: normResp(P.responsavel), prioridade: P.prioridade, data_inicio: P.data_inicio || atual.data_inicio || '', prazo_final: P.prazo_final, atualizado_em: agora() });
+    j.etapas.forEach(e => {
+      let a = atual.etapas.find(x => x.id === e.id);
+      if (!a) { a = { id: e.id, registros: [], criado_por: eu, criado_em: agora() }; atual.etapas.push(a); nNovas++; } else nAlt++;
+      const antes = a.status;
+      Object.assign(a, { titulo: e.titulo, descricao: e.descricao || '', responsavel: normResp(e.responsavel), horas_estimadas: +e.horas_estimadas || 0, data_inicio: e.data_inicio || '', prazo: e.prazo, depende_de: e.depende_de || [], status: e.status, links: Array.isArray(e.links) ? e.links : [], observacoes: e.observacoes || '' });
+      if (e.status === 'concluida' && antes !== 'concluida') { a.concluida_em = agora(); a.concluida_por = eu; }
+      if (e.status !== 'concluida') { delete a.concluida_em; delete a.concluida_por; }
+    });
+    atual.etapas.sort((x, y) => x.id.localeCompare(y.id, undefined, { numeric: true }));
+  }, novo ? `${curto(eu)} importou o plano "${P.titulo}" (${j.etapas.length} etapas)` : `${curto(eu)} atualizou o plano "${P.titulo}" pelo JSON (${nNovas} etapas novas, ${nAlt} revisadas)`);
+  toast(novo ? 'Projeto criado com as etapas do plano.' : 'Plano atualizado.');
+}
+function planoDe(p) {
+  return {
+    tipo: 'plano_projeto', versao_formato: '1.0',
+    projeto: { id: p.id, titulo: p.titulo, descricao: p.descricao, responsavel: p.responsavel, prioridade: p.prioridade, data_inicio: p.data_inicio, prazo_final: p.prazo_final },
+    etapas: p.etapas.map(e => ({ id: e.id, titulo: e.titulo, descricao: e.descricao, responsavel: e.responsavel, horas_estimadas: +e.horas_estimadas || 0, data_inicio: e.data_inicio, prazo: e.prazo, depende_de: e.depende_de || [], status: e.status, links: (e.links || []).concat((e.registros || []).filter(r => r.url).map(r => r.url)).filter((v, k, a) => a.indexOf(v) === k), observacoes: e.observacoes || '' })),
+    atualizado_em: isoBR()
+  };
+}
+function modalTexto(titulo, texto, nomeArquivo, explica) {
+  abrirModal(`${cab(esc(titulo))}<div class="modal-corpo">${explica ? `<p class="muted" style="margin:0">${explica}</p>` : ''}<pre class="codigo" id="texto-copiar">${esc(texto)}</pre></div>
+  <div class="modal-pe">${nomeArquivo ? `<button class="btn" data-acao="baixar" data-nome="${esc(nomeArquivo)}">Baixar arquivo</button>` : ''}<button class="btn prim" data-acao="copiar-texto">Copiar</button></div>`, { tipo: 'texto' });
+}
+function modalImportar() {
+  planoPendente = null;
+  abrirModal(`${cab('Importar plano')}<div class="modal-corpo">
+    <p class="muted" style="margin:0">Cole o JSON que o Claude devolveu, ou escolha o arquivo .json. Se o projeto já existir (mesmo "id"), o app atualiza as etapas sem duplicar e mostra o que muda antes de confirmar.</p>
+    <textarea id="plano-txt" style="min-height:220px;font:12px/1.5 var(--f-mono)" placeholder='{ "tipo": "plano_projeto", ... }' autofocus></textarea>
+    <label class="btn peq" style="align-self:flex-start;cursor:pointer">Escolher arquivo .json<input type="file" id="plano-arq" accept=".json,application/json" hidden></label>
+    <div id="plano-res"></div>
+  </div>
+  <div class="modal-pe"><button class="btn" data-acao="fechar">Cancelar</button><button class="btn" data-acao="validar-plano">Conferir</button><button class="btn prim" data-acao="confirmar-plano" id="btn-confirmar-plano" disabled>Confirmar importação</button></div>`, { tipo: 'importar' });
+}
+function conferirPlano() {
+  const r = validarPlano($('#plano-txt').value), out = $('#plano-res'), btn = $('#btn-confirmar-plano');
+  if (r.erros.length) { planoPendente = null; btn.disabled = true; out.innerHTML = `<div class="erros"><b>Corrija antes de importar:</b><ul>${r.erros.map(e => `<li>${esc(e)}</li>`).join('')}</ul></div>`; return; }
+  planoPendente = r.plano; const d = diffPlano(r.plano); btn.disabled = false;
+  out.innerHTML = `<div class="mudancas"><b>${d.novo ? 'O que vai ser criado' : 'O que vai mudar'}</b><ul>${d.linhas.map(l => `<li>${l}</li>`).join('')}</ul></div>`;
+}
+
+/* ---------- ajustes, backup, avisos ---------- */
+function modalAjustes() {
+  const perm = (() => { try { return 'Notification' in window ? Notification.permission : 'indisponivel'; } catch (e) { return 'indisponivel'; } })();
+  abrirModal(`${cab('Ajustes')}<div class="modal-corpo">
+    <div><div class="rotulo" style="margin-bottom:8px">Horas disponíveis por dia útil</div><div class="linha-campos">${NOMES.map(n => `<label class="campo">${esc(n)}<input type="number" min="0" max="16" step="0.5" id="hd-${pcls(n)}" value="${+db.horas_dia[n] || 6}" data-mudar="horas-dia" data-nome="${esc(n)}"></label>`).join('')}</div>
+      <p class="muted" style="font-size:12px;margin:6px 0 0">Usado no indicador de horas necessárias x disponíveis.</p></div>
+    <div><div class="rotulo" style="margin-bottom:8px">Avisos do navegador</div>
+      ${perm === 'granted' ? '<span class="muted">Ativados. Você recebe um aviso por dia quando houver prazos vencendo.</span>' : perm === 'indisponivel' ? '<span class="muted">Este navegador não permite notificações aqui.</span>' : '<button class="btn peq" data-acao="notificacoes">Ativar avisos do navegador</button>'}</div>
+    <div><div class="rotulo" style="margin-bottom:8px">Backup dos dados</div>
+      <p class="muted" style="font-size:13px;margin:0 0 8px">${MODO_NUVEM ? 'Os dados ficam no Supabase e aparecem para os dois em tempo real. O backup é uma cópia de segurança, e também serve para trazer o que vocês já tinham na versão sem login: exporte lá e importe aqui.' : 'Neste modo os dados ficam salvos só neste navegador. Para passar tudo para outro computador, exporte o backup e importe lá.'}</p>
+      <div class="ferramentas" style="margin:0"><button class="btn peq" data-acao="exportar-backup">Exportar backup (JSON)</button><label class="btn peq" style="cursor:pointer">Importar backup<input type="file" id="backup-arq" accept=".json,application/json" hidden></label></div>
+      <div id="backup-res" style="margin-top:8px"></div></div>
+    <div><div class="rotulo" style="margin-bottom:8px">${MODO_NUVEM ? 'Conta' : 'Usuário'}</div><button class="btn peq" data-acao="trocar-usuario">${MODO_NUVEM ? `Sair (conectado como ${esc(eu)})` : `Trocar de usuário (agora: ${esc(curto(eu))})`}</button></div>
+  </div><div class="modal-pe"><button class="btn prim" data-acao="fechar">Fechar</button></div>`, { tipo: 'ajustes' });
+}
+function modalAvisos() {
+  const av = avisos();
+  abrirModal(`${cab('Avisos para ' + esc(curto(eu)))}<div class="modal-corpo">${av.length ? `<div>${av.map(linhaAviso).join('')}</div>` : '<div class="vazio">Nenhum aviso. Tudo em dia.</div>'}</div>
+  <div class="modal-pe"><button class="btn" data-acao="marcar-vistos">Marcar novidades como vistas</button><button class="btn prim" data-acao="fechar">Fechar</button></div>`, { tipo: 'avisos' });
+}
+
+/* ---------- imagens ---------- */
+function comprimir(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => { const img = new Image(); img.onload = () => { const k = Math.min(1, 1280 / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); res(c.toDataURL('image/jpeg', 0.78)); }; img.onerror = rej; img.src = r.result; };
+    r.onerror = rej; r.readAsDataURL(file);
+  });
+}
+async function receberImagem(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  try { imagemPendente = await comprimir(file); const p = $('#reg-previa'); if (p) p.innerHTML = `<img class="previa-img" src="${imagemPendente}" alt="Prévia do print">`; const t = $('#reg-tipo'); if (t) t.value = 'print'; }
+  catch (e) { toast('Não consegui ler essa imagem.'); }
+}
+
+/* ---------- utilidades de interface ---------- */
+let toastT;
+function toast(msg) { const t = $('#toast'); if (!t) return; t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2600); }
+async function copiar(texto) {
+  try { await navigator.clipboard.writeText(texto); toast('Copiado.'); }
+  catch (e) { const el = $('#texto-copiar'); if (el) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } toast('Texto selecionado. Use Ctrl+C para copiar.'); }
+}
+function baixar(nome, texto) {
+  try { const b = new Blob([texto], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = nome; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+  catch (e) { toast('Não deu para baixar aqui. Use Copiar.'); }
+}
+const lerArquivo = f => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsText(f); });
+
+/* ---------- ações (cliques) ---------- */
+const ACOES = {
+  entrar: el => { eu = el.dataset.nome; Pref.gravar('usuario', eu); render(); notificarNavegador(); },
+  'trocar-usuario': async () => {
+    fecharModal();
+    if (Nuvem) { try { await Nuvem.sair(); } catch (e) {} db = vazio(); login.erro = ''; }
+    eu = null; Pref.gravar('usuario', null); render();
+  },
+  aba: el => { ui.aba = el.dataset.aba; animarVista = true; Pref.gravar('aba', ui.aba); render(); window.scrollTo(0, 0); },
+  tema: () => { const t = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light'; Pref.gravar('tema', t); aplicarTema(); },
+  'nova-tarefa': (el, e) => { if (e.target.closest('.cal-ev')) return; modalForm({ prazo: el.dataset.prazo, resp: el.dataset.resp }); },
+  'abrir-item': (el, e) => { e.stopPropagation(); imagemPendente = null; modalItem(el.dataset.id); },
+  status: el => definirStatus(el.dataset.id, el.dataset.status),
+  'editar-item': el => modalForm({ id: el.dataset.id }),
+  'excluir-tarefa': el => {
+    if (!el.dataset.ok) { el.dataset.ok = '1'; el.textContent = 'Clique de novo para excluir'; return; }
+    const it = acharItem(el.dataset.id); fecharModal();
+    mudar(() => { db.tarefas = db.tarefas.filter(t => t.id !== it.id); }, `${curto(eu)} excluiu a tarefa "${it.titulo}"`); toast('Tarefa excluída.');
+  },
+  'remover-registro': el => {
+    const it = acharItem(el.dataset.id), r = (it.obj.registros || []).find(x => x.id === el.dataset.rid);
+    if (r?.print && Nuvem) Nuvem.apagarImagem(r.print);
+    mudar(() => { it.obj.registros = it.obj.registros.filter(x => x.id !== el.dataset.rid); });
+  },
+  'ver-imagem': el => { const src = el.getAttribute('src'), volta = modalAtual; abrirModal(`${cab('Print')}<div class="modal-corpo"><img class="img-grande" src="${src}" alt="Print ampliado"></div><div class="modal-pe"><button class="btn prim" data-acao="voltar-item" data-id="${esc(volta?.id || '')}">Voltar</button></div>`, { tipo: 'imagem', classe: 'lado' }); },
+  'voltar-item': el => { if (el.dataset.id) modalItem(el.dataset.id); else fecharModal(); },
+  fechar: () => fecharModal(),
+  fundo: (el, e) => { if (e.target === el) fecharModal(); },
+  'importar-plano': () => modalImportar(),
+  'validar-plano': () => conferirPlano(),
+  'confirmar-plano': () => { if (!planoPendente) return; const j = planoPendente; fecharModal(); aplicarPlano(j); ui.aba = 'projetos'; Pref.gravar('aba', 'projetos'); render(); },
+  'copiar-modelo': () => modalTexto('Modelo para o Claude', textoModelo(), null, 'Cole este texto no Claude, preencha os colchetes e ele devolve o plano em JSON pronto para "Importar plano".'),
+  'exportar-plano': el => { const p = db.projetos.find(x => x.id === el.dataset.pid); modalTexto('Plano atual: ' + p.titulo, JSON.stringify(planoDe(p), null, 2), p.id + '.json', 'Leve este JSON de volta ao Claude e peça "atualize o plano" contando o que mudou.'); },
+  'excluir-projeto': el => {
+    if (!el.dataset.ok) { el.dataset.ok = '1'; el.textContent = 'Clique de novo para excluir o projeto e as etapas'; return; }
+    const p = db.projetos.find(x => x.id === el.dataset.pid);
+    mudar(() => { db.projetos = db.projetos.filter(x => x.id !== p.id); }, `${curto(eu)} excluiu o projeto "${p.titulo}"`); toast('Projeto excluído.');
+  },
+  'copiar-texto': () => copiar($('#texto-copiar').textContent),
+  baixar: el => baixar(el.dataset.nome, $('#texto-copiar').textContent),
+  'filtro-pessoa': el => { if (el.dataset.ctx === 'cal') ui.calPessoa = el.dataset.pessoa; else ui.pessoa = el.dataset.pessoa; render(); },
+  'filtro-status': el => { ui.status = el.dataset.status; render(); },
+  'cal-nav': el => { const d = +el.dataset.dir; if (ui.calModo === 'mes') { const p = pd(ui.calRef); ui.calRef = ymd(new Date(p.getFullYear(), p.getMonth() + d, 1)); } else ui.calRef = addD(ui.calRef, 7 * d); render(); },
+  'cal-hoje': () => { ui.calRef = hoje(); render(); },
+  'cal-modo': el => { ui.calModo = el.dataset.modo; render(); },
+  'resumo-modo': el => { ui.resumoModo = el.dataset.modo; render(); },
+  'resumo-nav': el => { ui.resumoRef = addD(ui.resumoRef, (ui.resumoModo === 'semana' ? 7 : 1) * +el.dataset.dir); render(); },
+  'resumo-hoje': () => { ui.resumoRef = hoje(); render(); },
+  'copiar-resumo': () => { modalTexto('Resumo em texto', textoResumo(), null, 'Para colar no WhatsApp ou e-mail.'); },
+  avisos: () => modalAvisos(),
+  'marcar-vistos': () => { mudar(() => { db.vistos[eu] = agora(); }); fecharModal(); toast('Novidades marcadas como vistas.'); },
+  ajustes: () => modalAjustes(),
+  notificacoes: async () => { try { const r = await Notification.requestPermission(); toast(r === 'granted' ? 'Avisos do navegador ativados.' : 'O navegador não liberou os avisos.'); notificarNavegador(); modalAjustes(); } catch (e) { toast('Este navegador não permite notificações aqui.'); } },
+  'exportar-backup': () => modalTexto('Backup completo', JSON.stringify(db, null, 2), `csl-gestao-backup-${hoje()}.json`, 'Guarde este arquivo ou importe em outro navegador. Ele inclui tudo, inclusive os prints.'),
+  'confirmar-backup': () => { if (!backupPendente) return; db = backupPendente; backupPendente = null; normalizar(); Dados.salvar(db); fecharModal(); render(); toast('Backup importado.'); },
+  'remover-exemplos': el => {
+    if (!el.dataset.ok) { el.dataset.ok = '1'; el.textContent = 'Clique de novo para confirmar'; return; }
+    mudar(() => { db.tarefas = db.tarefas.filter(t => !t.exemplo); db.projetos = db.projetos.filter(p => !p.exemplo); db.historico = db.historico.filter(h => !h.exemplo); });
+    toast('Exemplos removidos. Agora é com vocês.');
+  }
+};
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-acao]'); if (!el) return;
+  const f = ACOES[el.dataset.acao]; if (!f) return;
+  if (el.dataset.acao !== 'fundo' && el.tagName !== 'LABEL') e.preventDefault?.();
+  f(el, e);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalAtual) fecharModal(); });
+
+/* ---------- mudanças em campos ---------- */
+document.addEventListener('change', async e => {
+  const el = e.target;
+  const m = el.dataset?.mudar;
+  if (m === 'concluir') return definirStatus(el.dataset.id, el.checked ? 'concluida' : 'pendente');
+  if (m === 'status') return definirStatus(el.dataset.id, el.value);
+  if (m === 'com-etapas') { ui.comEtapas = el.checked; $('#lista-tarefas').innerHTML = listaTarefas(); return; }
+  if (m === 'horas-dia') { const v = Math.max(0, Math.min(16, +el.value || 0)); db.horas_dia[el.dataset.nome] = v; Dados.salvar(db); render(); return; }
+  if (el.id === 'reg-img') return receberImagem(el.files[0]);
+  if (el.id === 'plano-arq' && el.files[0]) { $('#plano-txt').value = await lerArquivo(el.files[0]); conferirPlano(); return; }
+  if (el.id === 'backup-arq' && el.files[0]) {
+    const out = $('#backup-res');
+    try { const j = JSON.parse(await lerArquivo(el.files[0])); if (!Array.isArray(j.tarefas) || !Array.isArray(j.projetos)) throw new Error();
+      backupPendente = j;
+      out.innerHTML = `<div class="mudancas">Backup com ${j.projetos.length} projeto(s) e ${j.tarefas.length} tarefa(s) avulsa(s). Importar substitui tudo o que está neste navegador.<div style="margin-top:8px"><button class="btn prim peq" data-acao="confirmar-backup">Substituir pelos dados do backup</button></div></div>`;
+    } catch (er) { out.innerHTML = '<div class="erros">Esse arquivo não parece um backup do CSL Gestão.</div>'; }
+  }
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'busca') { ui.busca = e.target.value; $('#lista-tarefas').innerHTML = listaTarefas(); }
+  if (e.target.id === 'plano-txt') { planoPendente = null; const b = $('#btn-confirmar-plano'); if (b) b.disabled = true; }
+});
+document.addEventListener('paste', e => {
+  if (!modalAtual || modalAtual.tipo !== 'item') return;
+  const f = [...(e.clipboardData?.files || [])].find(x => x.type.startsWith('image/'));
+  if (f) { e.preventDefault(); receberImagem(f); }
+});
+
+/* ---------- formulários ---------- */
+document.addEventListener('submit', async e => {
+  const f = e.target; e.preventDefault();
+  if (f.dataset.form === 'login') {
+    const email = $('#login-email').value.trim(), senha = $('#login-senha').value, btn = f.querySelector('button[type=submit]');
+    login.email = email; login.erro = ''; Pref.gravar('email', email);
+    btn.disabled = true; btn.textContent = 'Entrando…';
+    try { await Nuvem.entrar(email, senha); carregando = true; render(); await abrirSessao(); }
+    catch (er) { login.erro = /invalid login/i.test(er.message || '') ? 'E-mail ou senha incorretos.' : /fetch|network/i.test(er.message || '') ? 'Não consegui falar com o Supabase. Confira a internet e tente de novo.' : 'Não consegui entrar: ' + (er.message || er); }
+    carregando = false; render();
+    return;
+  }
+  if (f.dataset.form === 'tarefa') {
+    const titulo = $('#f-titulo').value.trim(), resp = f.querySelector('input[name=f-resp]:checked')?.value || eu;
+    const ini = $('#f-inicio').value, prazo = $('#f-prazo').value, horas = $('#f-horas').value === '' ? 0 : +$('#f-horas').value;
+    if (!titulo) { $('#f-erro').innerHTML = '<div class="erros">Dê um título para a tarefa.</div>'; return; }
+    if (ini && prazo && prazo < ini) { $('#f-erro').innerHTML = '<div class="erros">O prazo está antes da data de início.</div>'; return; }
+    const id = f.dataset.id;
+    if (id) {
+      const it = acharItem(id), o = it.obj;
+      fecharModal();
+      mudar(() => { Object.assign(o, { titulo, responsavel: resp, descricao: $('#f-desc')?.value || '', data_inicio: ini, prazo, horas_estimadas: horas }); if (it.tipo === 'tarefa') o.prioridade = $('#f-prior').value; o.atualizado_em = agora(); },
+        `${curto(eu)} editou ${it.tipo === 'etapa' ? 'a etapa' : 'a tarefa'} "${titulo}"`);
+      modalItem(id);
+    } else {
+      const t = { id: uid('t'), titulo, descricao: $('#f-desc').value.trim(), responsavel: resp, criado_por: eu, prioridade: $('#f-prior').value, data_inicio: ini, prazo, horas_estimadas: horas, status: 'pendente', registros: [], criado_em: agora() };
+      fecharModal();
+      mudar(() => db.tarefas.push(t), resp === eu ? `${curto(eu)} criou a tarefa "${titulo}"` : `${curto(eu)} criou a tarefa "${titulo}" para ${curto(resp)}`);
+      toast(resp === eu ? 'Tarefa criada.' : `Tarefa criada para ${curto(resp)}.`);
+    }
+  }
+  if (f.dataset.form === 'registro') {
+    const id = f.dataset.id, it = acharItem(id);
+    const tipo = $('#reg-tipo').value, texto = $('#reg-texto').value.trim(), url = $('#reg-url').value.trim();
+    if (!texto && !url && !imagemPendente) { toast('Escreva algo, cole um link ou anexe um print.'); return; }
+    const r = { id: uid('r'), tipo: imagemPendente && tipo === 'nota' ? 'print' : (url && tipo === 'nota' ? 'link' : tipo), texto, url, autor: eu, em: agora() };
+    if (imagemPendente && Nuvem) {
+      const btn = f.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = 'Enviando print…';
+      try { r.print = await Nuvem.enviarImagem(imagemPendente); }
+      catch (er) { btn.disabled = false; btn.textContent = 'Adicionar registro'; toast('Não consegui enviar o print: ' + (er.message || er)); return; }
+    } else if (imagemPendente) r.imagem = imagemPendente;
+    imagemPendente = null;
+    if ($('#reg-texto')) { $('#reg-texto').value = ''; $('#reg-url').value = ''; }
+    const it2 = acharItem(id); if (!it2) return;
+    mudar(() => { it2.obj.registros = it2.obj.registros || []; it2.obj.registros.push(r); }, `${curto(eu)} adicionou ${{ nota: 'uma nota', link: 'um link', print: 'um print', resumo: 'um resumo' }[r.tipo]} em "${it2.titulo}"`);
+  }
+});
+
+/* ---------- início ---------- */
+async function abrirSessao() {
+  const nome = await Nuvem.perfil();
+  if (!PESSOAS[nome]) { await Nuvem.sair(); login.erro = 'Este login ainda não está ligado a Legat ou a Ricardo. Rode o arquivo 02-ligar-usuarios.sql no Supabase.'; return; }
+  db = await Nuvem.carregar(); normalizar();
+  eu = nome; animarVista = true;
+  Nuvem.assinar();
+  notificarNavegador();
+}
+async function iniciar() {
+  if (!Nuvem) { render(); if (!MODO_NUVEM) notificarNavegador(); return; }
+  carregando = true; render();
+  try { if (await Nuvem.sessao()) await abrirSessao(); }
+  catch (e) { login.erro = 'Não consegui conectar ao banco: ' + (e.message || e); }
+  carregando = false; render();
+}
+iniciar();
+</script>
+</body>
+</html>
