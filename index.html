@@ -1390,7 +1390,14 @@ const ACOES = {
   'ver-imagem': el => { const src = el.getAttribute('src'), volta = modalAtual; abrirModal(`${cab('Print')}<div class="modal-corpo"><img class="img-grande" src="${src}" alt="Print ampliado"></div><div class="modal-pe"><button class="btn prim" data-acao="voltar-item" data-id="${esc(volta?.id || '')}">Voltar</button></div>`, { tipo: 'imagem', classe: 'lado' }); },
   'voltar-item': el => { if (el.dataset.id) modalItem(el.dataset.id); else fecharModal(); },
   fechar: () => fecharModal(),
-  fundo: (el, e) => { if (e.target === el) fecharModal(); },
+  fundo: (el, e) => {
+    // Só fecha se o clique começou e terminou no fundo escuro (arrastar para selecionar texto não fecha)
+    // e se não houver texto digitado que se perderia.
+    if (e.target !== el || !toqueNoFundo) return;
+    const digitado = [...el.querySelectorAll('input[type=text], input[type=url], textarea')].some(c => c.value !== c.defaultValue);
+    if (digitado) { toast('Use Cancelar ou o X para fechar sem salvar.'); return; }
+    fecharModal();
+  },
   'importar-plano': () => modalImportar(),
   'validar-plano': () => conferirPlano(),
   'confirmar-plano': () => { if (!planoPendente) return; const j = planoPendente; fecharModal(); aplicarPlano(j); ui.aba = 'projetos'; Pref.gravar('aba', 'projetos'); render(); },
@@ -1430,6 +1437,8 @@ document.addEventListener('click', e => {
   if (el.dataset.acao !== 'fundo' && el.tagName !== 'LABEL') e.preventDefault?.();
   f(el, e);
 });
+let toqueNoFundo = false;
+document.addEventListener('pointerdown', e => { toqueNoFundo = !!e.target.classList?.contains('fundo'); }, true);
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalAtual) fecharModal(); });
 
 /* ---------- mudanças em campos ---------- */
