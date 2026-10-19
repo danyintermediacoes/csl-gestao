@@ -200,10 +200,23 @@ tr:last-child td{border-bottom:0}
 /* ideias */
 .ideias{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
 .ideia{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--pc);border-radius:var(--r);display:flex;flex-direction:column;min-width:0}
-.ideia-corpo{border:0;background:none;text-align:left;cursor:pointer;padding:14px 16px 10px;flex:1;min-width:0}
+.ideia-corpo{display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;border:0;background:none;text-align:left;cursor:pointer;padding:14px 16px 10px;flex:1;min-width:0}
 .ideia-corpo h3{font:600 16px/1.3 var(--f-display);margin:0 0 6px;overflow-wrap:anywhere;text-wrap:balance}
 .ideia-corpo p{margin:0;color:var(--muted);font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
 .ideia-corpo:hover h3{text-decoration:underline;text-decoration-color:var(--faint);text-underline-offset:3px}
+.ideia-acoes{margin-left:auto;display:flex;gap:4px}
+.ideia-acoes button{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.ideia-acoes button:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-soft,var(--surface-2))}
+.ideia-acoes svg{width:16px;height:16px}
+.leitura{padding:26px 30px 8px;border-top:4px solid var(--pc);border-radius:14px 14px 0 0}
+.leitura h2{font:600 24px/1.25 var(--f-display);margin:0 0 12px;overflow-wrap:anywhere;text-wrap:balance}
+.leitura-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted);padding-bottom:16px;border-bottom:1px solid var(--line)}
+.leitura-texto{font-size:15.5px;line-height:1.7;color:var(--fg);white-space:pre-wrap;overflow-wrap:anywhere;margin:18px 0 0;max-height:min(55vh,560px);overflow:auto}
+.leitura-texto a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.leitura-links{margin-top:18px;display:flex;flex-direction:column;gap:6px}
+.leitura-links a{display:flex;gap:8px;align-items:center;padding:9px 12px;border:1px solid var(--line);border-radius:9px;color:var(--accent);text-decoration:none;font-size:13.5px;overflow-wrap:anywhere}
+.leitura-links a:hover{border-color:var(--accent)}
+.leitura-fechar{position:absolute;top:14px;right:14px}
 .ideia footer{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 16px 12px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
 .tag.privada{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent);background:color-mix(in srgb,var(--accent) 7%,transparent)}
 
@@ -602,6 +615,8 @@ const ICON = {
   resumo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
   sino: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>',
   ajustes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  olho: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  lapis: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>',
   mais: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
   tema: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>'
 };
@@ -1008,21 +1023,28 @@ function vIdeias() {
       <h3>${esc(i.titulo)}</h3>
       ${i.texto ? `<p>${esc(i.texto)}</p>` : ''}
     </button>
-    <footer>${avatar(i.autor, true)}<span>${esc(curto(i.autor))} · ${i.criada_em ? quando(i.criada_em) : ''}</span>${rotuloVisib(i)}${i.exemplo ? '<span class="tag ex">Exemplo</span>' : ''}</footer>
+    <footer>${avatar(i.autor, true)}<span>${esc(curto(i.autor))} · ${i.criada_em ? quando(i.criada_em) : ''}</span>${rotuloVisib(i)}${i.exemplo ? '<span class="tag ex">Exemplo</span>' : ''}<span class="ideia-acoes"><button data-acao="abrir-ideia" data-id="${esc(i.id)}" title="Ver ideia" aria-label="Ver ideia">${ICON.olho}</button>${i.autor === eu ? `<button data-acao="editar-ideia" data-id="${esc(i.id)}" title="Editar ideia" aria-label="Editar ideia">${ICON.lapis}</button>` : ''}</span></footer>
   </article>`).join('')}</div>` : `<section class="painel"><div class="vazio">Nenhuma ideia aqui ainda. Clique em "Nova ideia" para anotar a primeira.</div></section>`}`;
 }
-function modalIdeia(id) {
+function linkar(t) {
+  return esc(t).replace(/https?:\/\/[^\s<>"]+/g, m => { const u = m.replace(/[.,;:!?)\]]+$/, ''), r = m.slice(u.length); return `<a href="${u}" target="_blank" rel="noopener">${u}</a>${r}`; });
+}
+function modalIdeia(id, editar = false) {
   const i = id ? db.ideias.find(x => x.id === id) : null;
   if (i && !podeVer(i)) return;
   const meu = !i || i.autor === eu;
-  if (!meu) {
-    abrirModal(`${cab(esc(i.titulo))}<div class="modal-corpo">
-      <div class="${pcls(i.autor)}" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${avatar(i.autor, true)}<span>${esc(i.autor)} · ${quando(i.criada_em)}</span>${rotuloVisib(i)}</div>
-      <p class="descricao">${esc(i.texto || '')}</p>
-      <p class="muted" style="font-size:12px;margin:0">Só quem criou a ideia pode editar.</p>
-    </div><div class="modal-pe"><button class="btn" data-acao="ideia-para-tarefa" data-id="${esc(i.id)}">Virar tarefa</button><button class="btn prim" data-acao="fechar">Fechar</button></div>`, { tipo: 'ideia' });
+  if (i && !editar) {
+    const urls = [...new Set((i.texto || '').match(/https?:\/\/[^\s<>"']+/g) || [])].map(u => u.replace(/[.,;:!?)\]]+$/, ''));
+    abrirModal(`<div class="leitura ${pcls(i.autor)}" style="position:relative">
+      <button class="icone-btn leitura-fechar" data-acao="fechar" aria-label="Fechar">✕</button>
+      <h2 style="padding-right:44px">${esc(i.titulo)}</h2>
+      <div class="leitura-meta">${avatar(i.autor, true)}<span>${esc(i.autor)} · ${quando(i.criada_em)}${i.atualizada_em ? ' · editada ' + quando(i.atualizada_em) : ''}</span>${rotuloVisib(i)}</div>
+      ${i.texto ? `<div class="leitura-texto">${linkar(i.texto)}</div>` : '<p class="muted" style="margin:18px 0 0">Sem detalhes.</p>'}
+      ${urls.length ? `<div class="leitura-links"><div class="rotulo">Links</div>${urls.map(u => `<a href="${esc(u)}" target="_blank" rel="noopener">↗ ${esc(u)}</a>`).join('')}</div>` : ''}
+    </div><div class="modal-pe">${meu ? `<span class="muted" style="font-size:12px;margin-right:auto">Ideia sua</span>` : `<span class="muted" style="font-size:12px;margin-right:auto">Só quem criou pode editar</span>`}<button class="btn" data-acao="ideia-para-tarefa" data-id="${esc(i.id)}">Virar tarefa</button>${meu ? `<button class="btn prim" data-acao="editar-ideia" data-id="${esc(i.id)}">${ICON.lapis}Editar</button>` : `<button class="btn prim" data-acao="fechar">Fechar</button>`}</div>`, { tipo: 'ideia' });
     return;
   }
+  if (!meu) return;
   const priv = i?.visibilidade === 'privada', comp = i?.compartilhada_com || [];
   abrirModal(`${cab(i ? 'Editar ideia' : 'Nova ideia')}
   <form data-form="ideia" data-id="${esc(id || '')}"><div class="modal-corpo">
@@ -1501,6 +1523,7 @@ const ACOES = {
   'filtro-ideias': el => { ui.ideiasFiltro = el.dataset.f; render(); },
   'nova-ideia': () => modalIdeia(null),
   'abrir-ideia': el => modalIdeia(el.dataset.id),
+  'editar-ideia': el => modalIdeia(el.dataset.id, true),
   'excluir-ideia': el => {
     if (!el.dataset.ok) { el.dataset.ok = '1'; el.textContent = 'Clique de novo para excluir'; return; }
     const i = db.ideias.find(x => x.id === el.dataset.id); if (!i || i.autor !== eu) return;
