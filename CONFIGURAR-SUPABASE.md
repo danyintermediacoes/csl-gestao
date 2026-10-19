@@ -34,6 +34,11 @@ São 5 passos, todos no site do Supabase. Nenhum precisa de programação.
 A chave "anon public" pode ficar no código, porque as regras do banco só deixam vocês dois
 lerem e gravarem. **Nunca** coloque nem mande a chave "service_role".
 
+## Passo 6 · Área de Ideias
+1. No **SQL Editor**, abra uma nova query, cole o conteúdo de `supabase/03-ideias.sql` e clique em **Run**.
+2. Ideias públicas aparecem para os dois. Privadas só para quem criou e para quem ele marcar.
+   Só o autor edita ou apaga a própria ideia.
+
 ## Depois de ligado
 - Ao abrir o app aparece a tela de login. Cada um entra com o seu e-mail; os dois veem e editam tudo.
 - O canto de cima mostra "Sincronizado". Se a internet cair, aparece "Sem conexão" e o app tenta de novo sozinho.

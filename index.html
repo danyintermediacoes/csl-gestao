@@ -197,6 +197,16 @@ tr:last-child td{border-bottom:0}
 .prog-mini{display:flex;align-items:center;gap:10px}
 .prog-mini .barra{flex:1}
 
+/* ideias */
+.ideias{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.ideia{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--pc);border-radius:var(--r);display:flex;flex-direction:column;min-width:0}
+.ideia-corpo{border:0;background:none;text-align:left;cursor:pointer;padding:14px 16px 10px;flex:1;min-width:0}
+.ideia-corpo h3{font:600 16px/1.3 var(--f-display);margin:0 0 6px;overflow-wrap:anywhere;text-wrap:balance}
+.ideia-corpo p{margin:0;color:var(--muted);font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.ideia-corpo:hover h3{text-decoration:underline;text-decoration-color:var(--faint);text-underline-offset:3px}
+.ideia footer{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 16px 12px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.tag.privada{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent);background:color-mix(in srgb,var(--accent) 7%,transparent)}
+
 /* calendário */
 .cal-cab{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 .cal-cab h2{font:700 20px/1.2 var(--f-display);margin:0 6px;min-width:170px}
@@ -376,8 +386,9 @@ const MODO_NUVEM = !!(SUPABASE_URL && SUPABASE_CHAVE_PUBLICA);
 const Nuvem = (() => {
   if (!MODO_NUVEM || !window.supabase) return null;
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_CHAVE_PUBLICA);
-  const TABELAS = ['tarefas', 'projetos', 'historico', 'config'];
-  const novoSnap = () => ({ tarefas: new Map(), projetos: new Map(), historico: new Map(), config: new Map() });
+  const TABELAS = ['tarefas', 'projetos', 'historico', 'config', 'ideias'];
+  const novoSnap = () => ({ tarefas: new Map(), projetos: new Map(), historico: new Map(), config: new Map(), ideias: new Map() });
+  let semIdeias = false; // tabela de ideias ainda não criada no Supabase (falta o 03-ideias.sql)
   let snap = novoSnap(), atual = null, timer = null, enviando = false, deNovo = false, canal = null;
   let estado = { st: 'ok', msg: '' };
   const ouvintes = [], urls = new Map();
@@ -388,6 +399,7 @@ const Nuvem = (() => {
     db.tarefas.forEach(t => m.tarefas.set(t.id, t));
     db.projetos.forEach(p => m.projetos.set(p.id, p));
     db.historico.forEach(h => m.historico.set(h.id, h));
+    (db.ideias || []).forEach(i => m.ideias.set(i.id, i));
     NOMES.forEach(n => {
       if (db.vistos[n]) m.config.set('vistos:' + n, db.vistos[n]);
       if (db.horas_dia[n] !== undefined) m.config.set('horas_dia:' + n, db.horas_dia[n]);
@@ -395,8 +407,9 @@ const Nuvem = (() => {
     return m;
   }
   const linha = (tab, id, v) => tab === 'config' ? { chave: id, valor: v, atualizado_em: agora() }
+    : tab === 'ideias' ? { id, dados: v, visibilidade: v.visibilidade === 'privada' ? 'privada' : 'publica', compartilhada_com: v.compartilhada_com || [], atualizado_em: agora() }
     : tab === 'historico' ? { id, dados: v, em: v.em } : { id, dados: v, atualizado_em: agora() };
-  const temPendencia = () => { if (!atual) return false; const m = linhasDe(atual); return TABELAS.some(t => m[t].size !== snap[t].size || [...m[t]].some(([id, v]) => snap[t].get(id) !== JSON.stringify(v))); };
+  const temPendencia = () => { if (!atual) return false; const m = linhasDe(atual); return TABELAS.some(t => !(t === 'ideias' && semIdeias) && m[t].size !== snap[t].size || [...m[t]].some(([id, v]) => snap[t].get(id) !== JSON.stringify(v))); };
 
   function marcar(st, msg = '') {
     estado = { st, msg };
@@ -424,11 +437,13 @@ const Nuvem = (() => {
       sb.from('tarefas').select('id,dados'),
       sb.from('projetos').select('id,dados'),
       sb.from('historico').select('id,dados').order('em', { ascending: false }).limit(800),
-      sb.from('config').select('chave,valor')
+      sb.from('config').select('chave,valor'),
+      sb.from('ideias').select('id,dados')
     ]);
-    const falha = res.find(r => r.error); if (falha) throw falha.error;
-    const [t, p, h, c] = res.map(r => r.data);
-    const db = { versao: 1, tarefas: t.map(r => r.dados), projetos: p.map(r => r.dados), historico: h.map(r => r.dados), vistos: {}, horas_dia: { 'Legat': 6, 'Ricardo Romão': 6 } };
+    semIdeias = !!res[4].error;
+    const falha = res.slice(0, 4).find(r => r.error); if (falha) throw falha.error;
+    const [t, p, h, c, i] = res.map(r => r.data || []);
+    const db = { versao: 1, tarefas: t.map(r => r.dados), projetos: p.map(r => r.dados), historico: h.map(r => r.dados), ideias: i.map(r => r.dados), vistos: {}, horas_dia: { 'Legat': 6, 'Ricardo Romão': 6 } };
     c.forEach(r => { const [k, n] = r.chave.split(':'); if (k === 'vistos') db.vistos[n] = r.valor; if (k === 'horas_dia') db.horas_dia[n] = r.valor; });
     snap = novoSnap();
     const m = linhasDe(db);
@@ -444,6 +459,7 @@ const Nuvem = (() => {
     try {
       const m = linhasDe(atual);
       for (const tab of TABELAS) {
+        if (tab === 'ideias' && semIdeias) continue;
         const up = [], fotos = new Map(), del = [];
         m[tab].forEach((v, id) => { const s = JSON.stringify(v); if (snap[tab].get(id) !== s) { up.push(linha(tab, id, v)); fotos.set(id, s); } });
         snap[tab].forEach((_, id) => { if (!m[tab].has(id)) del.push(id); });
@@ -518,7 +534,7 @@ const Nuvem = (() => {
   }
   function apagarImagem(caminho) { sb.storage.from('prints').remove([caminho]).catch(() => {}); }
 
-  return { sessao, entrar, sair, perfil, carregar, salvar, assinar, enviarImagem, urlImagem, apagarImagem, textoSync, estado: () => estado, aoMudar: f => ouvintes.push(f) };
+  return { sessao, entrar, sair, perfil, carregar, salvar, assinar, enviarImagem, urlImagem, apagarImagem, textoSync, estado: () => estado, semIdeias: () => semIdeias, aoMudar: f => ouvintes.push(f) };
 })();
 
 /* ---------- camada de dados: Supabase quando configurado, senão o navegador ---------- */
@@ -582,6 +598,7 @@ const ICON = {
   tarefas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 6 1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11M3.5 18l1.5 1.5L7.5 17"/></svg>',
   projetos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
   calendario: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  ideias: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2V16h5v-.2c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3z"/></svg>',
   resumo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
   sino: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>',
   ajustes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
@@ -641,13 +658,18 @@ function dadosExemplo() {
     { em: em(-5, 10, 40), autor: R, texto: 'Ricardo concluiu a etapa "Definir estrutura e páginas do site"' },
     { em: em(-7, 9, 0), autor: R, texto: 'Ricardo importou o plano "Criação do site da CSL Consultoria" (5 etapas)' }
   ].map(h => ({ id: uid('h'), exemplo: true, ...h }));
-  return { versao: 1, projetos: [projeto], tarefas, historico, vistos: {}, horas_dia: { 'Legat': 6, 'Ricardo Romão': 6 }, atualizado_em: agora() };
+  const ideias = [
+    { id: uid('i'), exemplo: true, titulo: 'Pacote de diagnóstico rápido para pequenas empresas', texto: 'Oferecer um diagnóstico de 2 semanas com preço fechado, como porta de entrada para contratos maiores.', autor: L, visibilidade: 'publica', compartilhada_com: [], criada_em: em(-2, 10, 30) },
+    { id: uid('i'), exemplo: true, titulo: 'Newsletter mensal com cases', texto: 'Um e-mail por mês com um case resumido e uma dica prática. Pode reaproveitar os textos do site.', autor: R, visibilidade: 'publica', compartilhada_com: [], criada_em: em(-1, 16, 0) },
+    { id: uid('i'), exemplo: true, titulo: 'Rascunho: reajuste da tabela de preços', texto: 'Ainda estou pensando nos valores antes de mostrar.', autor: L, visibilidade: 'privada', compartilhada_com: [], criada_em: haHoras(4) }
+  ];
+  return { versao: 1, projetos: [projeto], tarefas, historico, ideias, vistos: {}, horas_dia: { 'Legat': 6, 'Ricardo Romão': 6 }, atualizado_em: agora() };
 }
 
 /* ---------- estado ---------- */
-const vazio = () => ({ versao: 1, projetos: [], tarefas: [], historico: [], vistos: {}, horas_dia: { 'Legat': 6, 'Ricardo Romão': 6 } });
+const vazio = () => ({ versao: 1, projetos: [], tarefas: [], historico: [], ideias: [], vistos: {}, horas_dia: { 'Legat': 6, 'Ricardo Romão': 6 } });
 function normalizar() {
-  db.tarefas = db.tarefas || []; db.projetos = db.projetos || [];
+  db.tarefas = db.tarefas || []; db.projetos = db.projetos || []; db.ideias = db.ideias || [];
   db.vistos = db.vistos || {}; db.horas_dia = db.horas_dia || { 'Legat': 6, 'Ricardo Romão': 6 }; db.historico = db.historico || [];
   db.historico.forEach(h => { if (!h.id) h.id = uid('h'); });
 }
@@ -676,7 +698,7 @@ function itens() {
 const acharItem = id => itens().find(i => i.id === id);
 const aberto = i => i.status !== 'concluida';
 const atrasado = i => aberto(i) && i.prazo && i.prazo < hoje();
-const temExemplos = () => db.tarefas.some(t => t.exemplo) || db.projetos.some(p => p.exemplo);
+const temExemplos = () => db.tarefas.some(t => t.exemplo) || db.projetos.some(p => p.exemplo) || db.ideias.some(i => i.exemplo);
 
 function progresso(p) {
   const tot = p.etapas.reduce((s, e) => s + (+e.horas_estimadas || 0), 0);
@@ -744,13 +766,13 @@ function notificarNavegador() {
 }
 
 /* ---------- render geral ---------- */
-const ABAS = [['painel', 'Painel'], ['tarefas', 'Tarefas'], ['projetos', 'Projetos'], ['calendario', 'Calendário'], ['resumo', 'Resumo']];
+const ABAS = [['painel', 'Painel'], ['tarefas', 'Tarefas'], ['projetos', 'Projetos'], ['calendario', 'Calendário'], ['ideias', 'Ideias'], ['resumo', 'Resumo']];
 function render() {
   const app = $('#app');
   if (!eu) { app.innerHTML = telaEntrada(); return; }
   const sync = Nuvem ? `<span id="sync" class="sync ${Nuvem.estado().st}" title="${esc(Nuvem.estado().msg)}">${Nuvem.textoSync()}</span>` : '';
   const nAv = avisos().filter(a => a.conta).length;
-  const vista = { painel: vPainel, tarefas: vTarefas, projetos: vProjetos, calendario: vCalendario, resumo: vResumo }[ui.aba] || vPainel;
+  const vista = { painel: vPainel, tarefas: vTarefas, projetos: vProjetos, calendario: vCalendario, ideias: vIdeias, resumo: vResumo }[ui.aba] || vPainel;
   app.innerHTML = `
   <div class="app">
     <aside class="lateral">
@@ -783,7 +805,7 @@ function render() {
 let animarVista = true;
 function tituloAba() {
   if (ui.aba === 'painel') { const h = new Date().getHours(); return `${h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'}, ${esc(curto(eu))}`; }
-  return { tarefas: 'Tarefas', projetos: 'Projetos', calendario: 'Calendário', resumo: 'Resumo' }[ui.aba];
+  return { tarefas: 'Tarefas', projetos: 'Projetos', calendario: 'Calendário', ideias: 'Ideias', resumo: 'Resumo' }[ui.aba];
 }
 function telaEntrada() {
   if (MODO_NUVEM) {
@@ -958,6 +980,69 @@ function vProjetos() {
         <button class="btn peq perigo" data-acao="excluir-projeto" data-pid="${esc(p.id)}">Excluir projeto</button>
       </div>
     </section>`; }).join('')}</div>`;
+}
+
+/* ---------- IDEIAS ---------- */
+// Pública: os dois veem. Privada: só o autor e quem ele marcar. O banco aplica a mesma regra.
+const podeVer = i => i.visibilidade !== 'privada' || i.autor === eu || (i.compartilhada_com || []).includes(eu);
+function rotuloVisib(i) {
+  if (i.visibilidade !== 'privada') return '<span class="tag">Pública</span>';
+  const c = (i.compartilhada_com || []).filter(n => n !== i.autor);
+  return `<span class="tag privada">${c.length ? 'Privada · com ' + c.map(curto).map(esc).join(', ') : 'Privada · só ' + (i.autor === eu ? 'você' : esc(curto(i.autor)))}</span>`;
+}
+function vIdeias() {
+  const f = ui.ideiasFiltro || 'todas';
+  let l = db.ideias.filter(podeVer);
+  if (f === 'minhas') l = l.filter(i => i.autor === eu);
+  if (f === 'publicas') l = l.filter(i => i.visibilidade !== 'privada');
+  if (f === 'privadas') l = l.filter(i => i.visibilidade === 'privada');
+  l = l.slice().sort((a, b) => (b.criada_em || '').localeCompare(a.criada_em || ''));
+  const aviso = Nuvem?.semIdeias() ? `<div class="erros" style="margin-bottom:14px">As ideias ainda não estão sendo salvas no banco. Falta rodar o arquivo 03-ideias.sql no Supabase.</div>` : '';
+  return `${aviso}<div class="ferramentas">
+    <button class="btn prim" data-acao="nova-ideia">${ICON.mais}Nova ideia</button>
+    <div class="seg" role="group" aria-label="Filtrar ideias">${[['todas', 'Todas'], ['minhas', 'Minhas'], ['publicas', 'Públicas'], ['privadas', 'Privadas']].map(([k, n]) => `<button data-acao="filtro-ideias" data-f="${k}" class="${f === k ? 'ativo' : ''}">${n}</button>`).join('')}</div>
+    <span class="muted" style="font-size:13px">Privadas aparecem só para quem criou e para quem ele escolher.</span>
+  </div>
+  ${l.length ? `<div class="ideias">${l.map(i => `<article class="ideia ${pcls(i.autor)}">
+    <button class="ideia-corpo" data-acao="abrir-ideia" data-id="${esc(i.id)}">
+      <h3>${esc(i.titulo)}</h3>
+      ${i.texto ? `<p>${esc(i.texto)}</p>` : ''}
+    </button>
+    <footer>${avatar(i.autor, true)}<span>${esc(curto(i.autor))} · ${i.criada_em ? quando(i.criada_em) : ''}</span>${rotuloVisib(i)}${i.exemplo ? '<span class="tag ex">Exemplo</span>' : ''}</footer>
+  </article>`).join('')}</div>` : `<section class="painel"><div class="vazio">Nenhuma ideia aqui ainda. Clique em "Nova ideia" para anotar a primeira.</div></section>`}`;
+}
+function modalIdeia(id) {
+  const i = id ? db.ideias.find(x => x.id === id) : null;
+  if (i && !podeVer(i)) return;
+  const meu = !i || i.autor === eu;
+  if (!meu) {
+    abrirModal(`${cab(esc(i.titulo))}<div class="modal-corpo">
+      <div class="${pcls(i.autor)}" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${avatar(i.autor, true)}<span>${esc(i.autor)} · ${quando(i.criada_em)}</span>${rotuloVisib(i)}</div>
+      <p class="descricao">${esc(i.texto || '')}</p>
+      <p class="muted" style="font-size:12px;margin:0">Só quem criou a ideia pode editar.</p>
+    </div><div class="modal-pe"><button class="btn" data-acao="ideia-para-tarefa" data-id="${esc(i.id)}">Virar tarefa</button><button class="btn prim" data-acao="fechar">Fechar</button></div>`, { tipo: 'ideia' });
+    return;
+  }
+  const priv = i?.visibilidade === 'privada', comp = i?.compartilhada_com || [];
+  abrirModal(`${cab(i ? 'Editar ideia' : 'Nova ideia')}
+  <form data-form="ideia" data-id="${esc(id || '')}"><div class="modal-corpo">
+    <label class="campo">Título<input type="text" id="id-titulo" required value="${esc(i?.titulo || '')}" placeholder="Resumo da ideia em uma linha" autofocus></label>
+    <label class="campo">Detalhes<textarea id="id-texto" placeholder="Explique a ideia, por que vale a pena, próximos passos">${esc(i?.texto || '')}</textarea></label>
+    <div><div class="rotulo" style="margin-bottom:6px">Quem pode ver</div>
+      <div class="escolha-pessoa">
+        <label class="p-legat"><input type="radio" name="id-vis" value="publica" data-mudar="ideia-vis" ${priv ? '' : 'checked'}><span>Pública · todos veem</span></label>
+        <label class="p-legat"><input type="radio" name="id-vis" value="privada" data-mudar="ideia-vis" ${priv ? 'checked' : ''}><span>Privada</span></label>
+      </div>
+      <div id="id-quem" ${priv ? '' : 'hidden'} style="margin-top:10px">
+        <div class="muted" style="font-size:12px;margin-bottom:6px">Além de você, também pode ver:</div>
+        <div class="escolha-pessoa">${NOMES.filter(n => n !== eu).map(n => `<label class="${pcls(n)}"><input type="checkbox" name="id-comp" value="${esc(n)}" ${comp.includes(n) ? 'checked' : ''}><span>${avatar(n, true)}${esc(n)}</span></label>`).join('')}</div>
+        <div class="muted" style="font-size:12px;margin-top:6px">Sem ninguém marcado, só você vê.</div>
+      </div>
+    </div>
+    <div id="id-erro"></div>
+  </div>
+  <div class="modal-pe">${i ? `<button type="button" class="btn perigo" data-acao="excluir-ideia" data-id="${esc(i.id)}" style="margin-right:auto">Excluir</button><button type="button" class="btn" data-acao="ideia-para-tarefa" data-id="${esc(i.id)}">Virar tarefa</button>` : ''}<button type="button" class="btn" data-acao="fechar">Cancelar</button><button class="btn prim" type="submit">${i ? 'Salvar' : 'Guardar ideia'}</button></div>
+  </form>`, { tipo: 'ideia' });
 }
 
 /* ---------- CALENDÁRIO ---------- */
@@ -1413,6 +1498,23 @@ const ACOES = {
   baixar: el => baixar(el.dataset.nome, $('#texto-copiar').textContent),
   'filtro-pessoa': el => { if (el.dataset.ctx === 'cal') ui.calPessoa = el.dataset.pessoa; else ui.pessoa = el.dataset.pessoa; render(); },
   'filtro-status': el => { ui.status = el.dataset.status; render(); },
+  'filtro-ideias': el => { ui.ideiasFiltro = el.dataset.f; render(); },
+  'nova-ideia': () => modalIdeia(null),
+  'abrir-ideia': el => modalIdeia(el.dataset.id),
+  'excluir-ideia': el => {
+    if (!el.dataset.ok) { el.dataset.ok = '1'; el.textContent = 'Clique de novo para excluir'; return; }
+    const i = db.ideias.find(x => x.id === el.dataset.id); if (!i || i.autor !== eu) return;
+    fecharModal();
+    mudar(() => { db.ideias = db.ideias.filter(x => x.id !== i.id); }, i.visibilidade === 'privada' ? null : `${curto(eu)} excluiu a ideia "${i.titulo}"`);
+    toast('Ideia excluída.');
+  },
+  'ideia-para-tarefa': el => {
+    const i = db.ideias.find(x => x.id === el.dataset.id); if (!i) return;
+    modalForm({});
+    $('#f-titulo').value = i.titulo; $('#f-desc').value = (i.texto || '') + `
+
+(Ideia de ${curto(i.autor)})`;
+  },
   'cal-nav': el => { const d = +el.dataset.dir; if (ui.calModo === 'mes') { const p = pd(ui.calRef); ui.calRef = ymd(new Date(p.getFullYear(), p.getMonth() + d, 1)); } else ui.calRef = addD(ui.calRef, 7 * d); render(); },
   'cal-hoje': () => { ui.calRef = hoje(); render(); },
   'cal-modo': el => { ui.calModo = el.dataset.modo; render(); },
@@ -1428,7 +1530,7 @@ const ACOES = {
   'confirmar-backup': () => { if (!backupPendente) return; db = backupPendente; backupPendente = null; normalizar(); Dados.salvar(db); fecharModal(); render(); toast('Backup importado.'); },
   'remover-exemplos': el => {
     if (!el.dataset.ok) { el.dataset.ok = '1'; el.textContent = 'Clique de novo para confirmar'; return; }
-    mudar(() => { db.tarefas = db.tarefas.filter(t => !t.exemplo); db.projetos = db.projetos.filter(p => !p.exemplo); db.historico = db.historico.filter(h => !h.exemplo); });
+    mudar(() => { db.tarefas = db.tarefas.filter(t => !t.exemplo); db.projetos = db.projetos.filter(p => !p.exemplo); db.ideias = db.ideias.filter(i => !i.exemplo); db.historico = db.historico.filter(h => !h.exemplo); });
     toast('Exemplos removidos. Agora é com vocês.');
   }
 };
@@ -1448,6 +1550,7 @@ document.addEventListener('change', async e => {
   const m = el.dataset?.mudar;
   if (m === 'concluir') return definirStatus(el.dataset.id, el.checked ? 'concluida' : 'pendente');
   if (m === 'status') return definirStatus(el.dataset.id, el.value);
+  if (m === 'ideia-vis') { const q = $('#id-quem'); if (q) q.hidden = el.value !== 'privada'; return; }
   if (m === 'com-etapas') { ui.comEtapas = el.checked; $('#lista-tarefas').innerHTML = listaTarefas(); return; }
   if (m === 'horas-dia') { const v = Math.max(0, Math.min(16, +el.value || 0)); db.horas_dia[el.dataset.nome] = v; Dados.salvar(db); render(); return; }
   if (el.id === 'reg-img') return receberImagem(el.files[0]);
@@ -1500,6 +1603,24 @@ document.addEventListener('submit', async e => {
       mudar(() => db.tarefas.push(t), resp === eu ? `${curto(eu)} criou a tarefa "${titulo}"` : `${curto(eu)} criou a tarefa "${titulo}" para ${curto(resp)}`);
       toast(resp === eu ? 'Tarefa criada.' : `Tarefa criada para ${curto(resp)}.`);
     }
+  }
+  if (f.dataset.form === 'ideia') {
+    const titulo = $('#id-titulo').value.trim(), texto = $('#id-texto').value.trim();
+    if (!titulo) { $('#id-erro').innerHTML = '<div class="erros">Dê um título para a ideia.</div>'; return; }
+    const visibilidade = f.querySelector('input[name=id-vis]:checked')?.value === 'privada' ? 'privada' : 'publica';
+    const compartilhada_com = visibilidade === 'privada' ? [...f.querySelectorAll('input[name=id-comp]:checked')].map(c => c.value) : [];
+    const id = f.dataset.id, i = id ? db.ideias.find(x => x.id === id) : null;
+    const publica = visibilidade === 'publica';
+    fecharModal();
+    if (i) {
+      mudar(() => Object.assign(i, { titulo, texto, visibilidade, compartilhada_com, atualizada_em: agora() }), publica ? `${curto(eu)} editou a ideia "${titulo}"` : null);
+      toast('Ideia salva.');
+    } else {
+      const nova = { id: uid('i'), titulo, texto, autor: eu, visibilidade, compartilhada_com, criada_em: agora() };
+      mudar(() => db.ideias.push(nova), publica ? `${curto(eu)} anotou a ideia "${titulo}"` : null);
+      toast(publica ? 'Ideia guardada. Os dois podem ver.' : compartilhada_com.length ? `Ideia guardada. Só você e ${compartilhada_com.map(curto).join(', ')} veem.` : 'Ideia guardada. Só você vê.');
+    }
+    return;
   }
   if (f.dataset.form === 'registro') {
     const id = f.dataset.id, it = acharItem(id);
